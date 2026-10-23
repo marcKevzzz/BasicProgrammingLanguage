@@ -1,0 +1,174 @@
+@{
+    ViewData["Title"] = "Mini Library Manager";
+    var books = ViewBag.Books as List<Dictionary<string, object>> ?? new();
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <h1 class="hero-title">Mini Library Manager</h1>
+            <p class="hero-subtitle mb-0">Manage your books and authors.</p>
+        </div>
+        <a asp-action="Create" class="btn-apple-primary">
+            <i class="bi bi-plus-lg"></i> Add New Book
+        </a>
+    </div>
+</div>
+
+<!-- Search & Controls Bar -->
+<div class="apple-card shadow-sm p-3 mb-4">
+    <form method="get" asp-action="Index" class="row g-2 align-items-center">
+        <div class="col-12 col-md-9 position-relative">
+            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+            <input type="text" 
+                   name="search" aria-label="Search records" 
+                   value="@ViewBag.Search" 
+                   class="form-apple-input ps-5" 
+                   placeholder="Search books by title, author, or genre..." />
+        </div>
+        <div class="col-6 col-md-2">
+            <button type="submit" class="btn-apple-primary w-100 justify-content-center">
+                Search
+            </button>
+        </div>
+        <div class="col-6 col-md-1">
+            <a asp-action="Index" class="btn-apple-secondary w-100 justify-content-center" title="Reset filter" aria-label="Reset filter">
+                <i class="bi bi-arrow-counterclockwise"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Books Table -->
+<div class="apple-card mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h5 fw-bold mb-0">Library Catalog (@books.Count Books)</h2>
+        @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+        {
+            <span class="badge bg-light text-secondary border rounded-pill px-3 py-1">
+                Filtered by "@ViewBag.Search"
+            </span>
+        }
+    </div>
+
+    <div class="table-responsive apple-table-container">
+        <table class="apple-table">
+            <thead>
+                <tr>
+                    <th style="width: 70px;">ID</th>
+                    <th>Book Title</th>
+                    <th>Author</th>
+                    <th>Genre</th>
+                    <th>Year</th>
+                    <th class="text-end" style="width: 140px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (books.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-secondary">
+                            <i class="bi bi-book fs-1 d-block mb-2 opacity-50"></i>
+                            No books found in catalog. Click <strong>Add New Book</strong> to create one!
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var book in books)
+                    {
+                        int id = Convert.ToInt32(book["id"]);
+                        <tr>
+                            <td class="font-monospace text-secondary">#@id</td>
+                            <td class="fw-bold text-primary">@book["title"]</td>
+                            <td class="text-secondary">@book["author"]</td>
+                            <td>
+                                <span class="badge bg-light text-dark border rounded-pill px-2 py-1 small">
+                                    @book["genre"]
+                                </span>
+                            </td>
+                            <td class="font-monospace text-secondary">@book["year"]</td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1">
+                                    <a asp-action="Edit" asp-route-id="@id" class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Edit book" aria-label="Edit book">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="post" asp-action="Delete" asp-route-id="@id" class="d-inline" onsubmit="return confirm('Are you sure you want to delete book #@id \'@book["title"]\'?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Delete book" aria-label="Delete book">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content">
+<div class="row g-4">
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">In-Memory Thread-Safe Repository</h6>
+            <p class="text-secondary small">
+                Rather than introducing Entity Framework Core or SQL relational dependencies, records are held in a singleton service <code>InMemoryCrudStore</code> utilizing <code>List&lt;Dictionary&lt;string, object&gt;&gt;</code> protected by C# <code>lock (_lock)</code> monitors.
+            </p>
+        </div>
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Complete CRUD Operations</h6>
+            <p class="text-secondary small">
+                - <strong>Create:</strong> Generates atomic auto-increment IDs.<br />
+                - <strong>Read:</strong> Filters catalog by keyword searches across title, author, or genre.<br />
+                - <strong>Update:</strong> Mutates dictionary keys in-place.<br />
+                - <strong>Delete:</strong> Removes record with JavaScript confirm dialog protection.
+            </p>
+        </div>
+    </div>
+    </div>
+</details>
+
+<!-- View C# Logic Section -->
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+<div class="lesson-body" id="libLogicPanel">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="traffic-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <div class="code-title">LibraryController.cs — Search &amp; Mutate</div>
+                <button type="button" class="btn-copy-code" data-code-target="libCode">
+                    <i class="bi bi-clipboard"></i> Copy Code
+                </button>
+            </div>
+            <pre class="macos-code-body" id="libCode"><code>public IActionResult Index(string? search)
+{
+    var books = _store.GetAll("library");
+
+    if (!string.IsNullOrWhiteSpace(search))
+    {
+        string query = search.Trim().ToLowerInvariant();
+        books = books.Where(b =&gt;
+            (b.ContainsKey("title") &amp;&amp; b["title"].ToString()!.ToLowerInvariant().Contains(query)) ||
+            (b.ContainsKey("author") &amp;&amp; b["author"].ToString()!.ToLowerInvariant().Contains(query)) ||
+            (b.ContainsKey("genre") &amp;&amp; b["genre"].ToString()!.ToLowerInvariant().Contains(query))
+        ).ToList();
+    }
+
+    ViewBag.Books = books;
+    return View();
+}</code></pre>
+        </div>
+    </div>
+    </div>
+</details>

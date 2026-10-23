@@ -1,0 +1,231 @@
+@{
+    ViewData["Title"] = "Daily Expense Tracker";
+    var expenses = ViewBag.Expenses as List<Dictionary<string, object>> ?? new();
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="hero-title">Daily Expense Tracker</h1>
+    <p class="hero-subtitle mb-0">Add your expenses to see the total and average.</p>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Input Section -->
+    <div class="col-12 col-lg-5">
+        <div class="apple-card h-100">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-plus-circle fs-5 text-primary"></i>
+                <h2 class="h5 fw-bold mb-0">Record New Expense</h2>
+            </div>
+
+            <form method="post" asp-action="ExpenseTracker">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="action" value="add" />
+
+                <div class="mb-3">
+                    <label for="name" class="form-apple-label">Expense Description <span class="text-danger">*</span></label>
+                    <input type="text" 
+                           id="name" 
+                           name="name" 
+                           class="form-apple-input" 
+                           placeholder="e.g. Lunch with team, Fuel, Groceries" 
+                           required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="amount" class="form-apple-label">Amount in Philippine Pesos (₱) <span class="text-danger">*</span></label>
+                    <input type="number" 
+                           id="amount" 
+                           name="amount" 
+                           min="0.5" 
+                           max="1000000" 
+                           step="0.5" 
+                           class="form-apple-input" 
+                           placeholder="e.g. 250.00" 
+                           required />
+                </div>
+
+                <div class="d-flex align-items-center gap-2 pt-2">
+                    <button type="submit" class="btn-apple-primary flex-grow-1">
+                        <i class="bi bi-wallet2"></i> Add Expense Entry
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-4 pt-3 border-top">
+                <form method="post" asp-action="ExpenseTracker" onsubmit="return confirm('Are you sure you want to clear all recorded expenses?');">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="action" value="clear" />
+                    <button type="submit" class="btn btn-sm btn-apple-danger w-100">
+                        <i class="bi bi-trash3"></i> Clear All Expenses
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="col-12 col-lg-7">
+        <div class="apple-card h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-receipt fs-5 text-primary"></i>
+                        <h2 class="h5 fw-bold mb-0">Expense Ledger &amp; Totals</h2>
+                    </div>
+                    <span class="badge bg-light text-secondary border rounded-pill px-3 py-1">
+                        @ViewBag.ExpenseCount Items
+                    </span>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                        @ViewBag.Error
+                    </div>
+                }
+
+                @if (ViewBag.Message != null)
+                {
+                    <div class="alert alert-info rounded-4 border-0 shadow-sm py-2 mb-3 small" role="alert">
+                        <i class="bi bi-check-circle-fill text-primary me-1"></i>
+                        @ViewBag.Message
+                    </div>
+                }
+
+                <!-- Totals Hero Panel -->
+                <div class="output-hero-panel mb-3">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="text-secondary small fw-bold text-uppercase">Total Expenditures</div>
+                            <div class="output-value-large text-danger">
+                                ₱@string.Format("{0:N2}", ViewBag.TotalExpenses)
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-secondary small fw-bold text-uppercase">Average / Entry</div>
+                            <div class="output-value-large text-primary">
+                                ₱@string.Format("{0:N2}", ViewBag.AverageExpense)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ledger Table -->
+                <div class="table-responsive rounded-3 border overflow-auto" style="max-height: 260px;">
+                    <table class="table table-sm table-hover mb-0 small">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>#</th>
+                                <th>Description</th>
+                                <th>Timestamp</th>
+                                <th class="text-end">Amount (₱)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (expenses.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-secondary">
+                                        No expenses currently recorded. Add your first item above!
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                int idx = 1;
+                                foreach (var exp in expenses)
+                                {
+                                    <tr>
+                                        <td class="text-secondary">@idx</td>
+                                        <td class="fw-semibold">@exp["name"]</td>
+                                        <td class="text-secondary">@exp["date"]</td>
+                                        <td class="text-end fw-bold text-dark">₱@string.Format("{0:N2}", exp["amount"])</td>
+                                    </tr>
+                                    idx++;
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top text-secondary small">
+                <i class="bi bi-arrow-repeat me-1"></i> Sum and Average calculated via C# <code>foreach</code> repetition loop.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content">
+<div class="row g-4">
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Loop Aggregation Algorithm</h6>
+            <p class="text-secondary small">
+                The controller executes a C# <code>foreach</code> loop traversing through the expense list. Each item's numeric cost is accumulated into a running sum counter:
+            </p>
+            <div class="p-3 rounded-3 bg-light border font-monospace small">
+                double total = 0;<br />
+                int count = 0;<br />
+                foreach (var exp in expenses)<br />
+                {<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;total += exp.Amount;<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;count++;<br />
+                }<br />
+                double average = count &gt; 0 ? total / count : 0;
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">In-Memory Session Persistence</h6>
+            <p class="text-secondary small">
+                Every newly added expense is serialized into the user's encrypted HTTP session state. The records remain available as you navigate through other exercises, without requiring an external database.
+            </p>
+        </div>
+    </div>
+    </div>
+</details>
+
+<!-- View C# Logic Section -->
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+<div class="lesson-body" id="expenseLogicPanel">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="traffic-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <div class="code-title">RepetitionController.cs — ExpenseTracker</div>
+                <button type="button" class="btn-copy-code" data-code-target="expenseCode">
+                    <i class="bi bi-clipboard"></i> Copy Code
+                </button>
+            </div>
+            <pre class="macos-code-body" id="expenseCode"><code>private void CalculateExpenseMetrics(List&lt;Dictionary&lt;string, object&gt;&gt; expenses)
+{
+    // Explicit Repetition Statement Requirement: Use C# loop to process collection
+    double total = 0;
+    int count = 0;
+
+    foreach (var item in expenses)
+    {
+        total += Convert.ToDouble(item["amount"]);
+        count++;
+    }
+
+    double average = count &gt; 0 ? total / count : 0.0;
+
+    ViewBag.Expenses = expenses;
+    ViewBag.TotalExpenses = total;
+    ViewBag.AverageExpense = average;
+    ViewBag.ExpenseCount = count;
+}</code></pre>
+        </div>
+    </div>
+    </div>
+</details>

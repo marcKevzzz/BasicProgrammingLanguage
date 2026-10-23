@@ -1,0 +1,268 @@
+@{
+    ViewData["Title"] = "Savings Challenge Simulator";
+    var timeline = ViewBag.Timeline as List<Dictionary<string, object>>;
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="hero-title">Savings Challenge Simulator</h1>
+    <p class="hero-subtitle mb-0">See how your daily deposits add up.</p>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Input Section -->
+    <div class="col-12 col-lg-5">
+        <div class="apple-card h-100">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-piggy-bank fs-5 text-primary"></i>
+                <h2 class="h5 fw-bold mb-0">Challenge Parameters</h2>
+            </div>
+
+            <form method="post" asp-action="SavingsChallenge">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label for="startingSavings" class="form-apple-label">Starting Initial Balance (₱) <span class="text-danger">*</span></label>
+                    <input type="number" 
+                           id="startingSavings" 
+                           name="startingSavings" 
+                           value="@ViewBag.StartingSavings" 
+                           min="0" 
+                           max="1000000" 
+                           step="50" 
+                           class="form-apple-input" 
+                           placeholder="e.g. 500.00" 
+                           required />
+                    <div class="form-text text-secondary small">Base balance already saved before starting challenge.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="dailySavings" class="form-apple-label">Daily Increment Amount (₱ / Day) <span class="text-danger">*</span></label>
+                    <input type="number" 
+                           id="dailySavings" 
+                           name="dailySavings" 
+                           value="@ViewBag.DailySavings" 
+                           min="1" 
+                           max="10000" 
+                           step="5" 
+                           class="form-apple-input" 
+                           placeholder="e.g. 50.00" 
+                           required />
+                    <div class="form-text text-secondary small">Day 1 deposits ₱50, Day 2 deposits ₱100, etc.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="days" class="form-apple-label">Number of Challenge Days <span class="text-danger">*</span></label>
+                    <input type="number" 
+                           id="days" 
+                           name="days" 
+                           value="@ViewBag.Days" 
+                           min="1" 
+                           max="365" 
+                           step="1" 
+                           class="form-apple-input" 
+                           placeholder="e.g. 14" 
+                           required />
+                    <div class="form-text text-secondary small">Duration (1 to 365 days).</div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 pt-2">
+                    <button type="submit" class="btn-apple-primary">
+                        <i class="bi bi-graph-up-arrow"></i> Run Simulation
+                    </button>
+                    <a asp-action="SavingsChallenge" class="btn-apple-secondary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="col-12 col-lg-7">
+        <div class="apple-card h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-cash-coin fs-5 text-primary"></i>
+                        <h2 class="h5 fw-bold mb-0">Projected Savings Target</h2>
+                    </div>
+                    @if (ViewBag.Success == true)
+                    {
+                        <span class="apple-badge badge-beginner">
+                            @ViewBag.Days Days Completed
+                        </span>
+                    }
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                        @ViewBag.Error
+                    </div>
+                }
+                else if (ViewBag.Success == true)
+                {
+                    <div class="output-hero-panel mb-3">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="text-secondary small fw-bold text-uppercase">Final Total Savings</div>
+                                <div class="output-value-large text-success">
+                                    ₱@string.Format("{0:N2}", ViewBag.FinalSavings)
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-secondary small fw-bold text-uppercase">New Deposits Added</div>
+                                <div class="output-value-large text-primary">
+                                    ₱@string.Format("{0:N2}", ViewBag.TotalDeposited)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (timeline != null && timeline.Count > 0)
+                    {
+                        <div class="table-responsive rounded-3 border overflow-auto" style="max-height: 250px;">
+                            <table class="table table-sm table-hover mb-0 small">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Day #</th>
+                                        <th class="text-end">Daily Deposit (₱)</th>
+                                        <th class="text-end">Cumulative Total (₱)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var step in timeline)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">Day @step["day"]</td>
+                                            <td class="text-end text-primary fw-medium">+₱@string.Format("{0:N2}", step["deposit"])</td>
+                                            <td class="text-end fw-bold text-success">₱@string.Format("{0:N2}", step["total"])</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-safe fs-1 mb-2 d-block opacity-50"></i>
+                        <p class="mb-0">Configure challenge inputs and click <strong>Run Simulation</strong> to view the daily deposit breakdown.</p>
+                    </div>
+                }
+            </div>
+
+            <div class="mt-4 pt-3 border-top text-secondary small">
+                <i class="bi bi-cpu me-1"></i> Progression computed via fixed-count C# <code>for (int day = 1; day &le; totalDays; day++)</code> loop.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content">
+<div class="row g-4">
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Arithmetic Progression in Loops</h6>
+            <p class="text-secondary small">
+                The incremental savings challenge follows an arithmetic sequence where each day's deposit equals the daily rate multiplied by the current day index:
+            </p>
+            <div class="p-3 rounded-3 bg-light border font-monospace small">
+                for (int day = 1; day &le; totalDays; day++)<br />
+                {<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;deposit = rate &times; day;<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;runningTotal += deposit;<br />
+                }
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Example 3-Day Breakdown (₱50 / day)</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Day</th>
+                            <th>Deposit</th>
+                            <th>Running Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Day 1</td>
+                            <td>1 &times; ₱50 = ₱50</td>
+                            <td>₱50</td>
+                        </tr>
+                        <tr>
+                            <td>Day 2</td>
+                            <td>2 &times; ₱50 = ₱100</td>
+                            <td>₱150</td>
+                        </tr>
+                        <tr>
+                            <td>Day 3</td>
+                            <td>3 &times; ₱50 = ₱150</td>
+                            <td>₱300</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+</details>
+
+<!-- View C# Logic Section -->
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+<div class="lesson-body" id="savingsLogicPanel">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="traffic-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <div class="code-title">RepetitionController.cs — SavingsChallenge</div>
+                <button type="button" class="btn-copy-code" data-code-target="savingsCode">
+                    <i class="bi bi-clipboard"></i> Copy Code
+                </button>
+            </div>
+            <pre class="macos-code-body" id="savingsCode"><code>[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult SavingsChallenge(double? startingSavings, double? dailySavings, int? days)
+{
+    double initial = startingSavings.Value;
+    double increment = dailySavings.Value;
+    int totalDays = days.Value;
+
+    var timeline = new List&lt;Dictionary&lt;string, object&gt;&gt;();
+    double runningTotal = initial;
+
+    // Repetition Statement: C# for loop to calculate day-by-day progression
+    for (int day = 1; day &lt;= totalDays; day++)
+    {
+        double dailyDeposit = increment * day;
+        runningTotal += dailyDeposit;
+
+        timeline.Add(new Dictionary&lt;string, object&gt;
+        {
+            ["day"] = day,
+            ["deposit"] = dailyDeposit,
+            ["total"] = runningTotal
+        });
+    }
+
+    ViewBag.FinalSavings = runningTotal;
+    ViewBag.Timeline = timeline;
+    ViewBag.Success = true;
+    return View();
+}</code></pre>
+        </div>
+    </div>
+    </div>
+</details>

@@ -1,0 +1,48 @@
+@{
+    ViewData["Title"] = "Basic Programming Language";
+    var categories = ViewBag.Categories as IReadOnlyList<Dictionary<string, object>> ?? Array.Empty<Dictionary<string, object>>();
+    var programs = ViewBag.Programs as IReadOnlyList<Dictionary<string, object>> ?? Array.Empty<Dictionary<string, object>>();
+}
+
+<header class="catalog-heading">
+    <p class="catalog-context">Programs</p>
+    <h1 class="hero-title">Basic Programming Language</h1>
+    <p class="hero-subtitle">@programs.Count small C# programs for practicing input and output, conditions, loops, and collections.</p>
+    <pre class="catalog-quickstart" aria-label="Create and run a C# console project"><code>dotnet new console -n Practice
+dotnet run --project Practice</code></pre>
+</header>
+
+<section aria-label="Find a program" class="catalog-controls">
+    <div class="catalog-filters" role="group" aria-label="Program category">
+        <button type="button" class="filter-pill active" data-filter="all" aria-pressed="true">All <span>@programs.Count</span></button>
+        @foreach (var cat in categories)
+        {
+            <button type="button" class="filter-pill" data-filter="@cat["id"]" aria-pressed="false">@cat["name"] <span>@cat["count"]</span></button>
+        }
+    </div>
+    <span id="programCount" role="status">@programs.Count programs</span>
+</section>
+
+<section aria-labelledby="programs-heading">
+    <h2 id="programs-heading" class="visually-hidden">Programs</h2>
+    <div id="programsGrid" class="program-list">
+        @foreach (var prog in programs)
+        {
+            <div class="program-card-wrapper" data-title="@prog["title"]" data-desc="@prog["desc"]" data-category="@prog["categoryId"]">
+                <a asp-controller="@prog["controller"]" asp-action="@prog["action"]" class="program-row">
+                    <span class="program-icon-box"><i class="bi @prog["icon"]" aria-hidden="true"></i></span>
+                    <span class="program-summary">
+                        <span class="program-title">@prog["title"]</span>
+                        <span class="program-desc">@prog["desc"]</span>
+                    </span>
+                    <i class="bi bi-arrow-up-right program-arrow" aria-hidden="true"></i>
+                </a>
+            </div>
+        }
+    </div>
+    <div id="noResultsMessage" class="text-center py-5" style="display:none;">
+        <h3 class="h5">No programs found</h3>
+        <p class="text-secondary">Try another search or choose a different category.</p>
+    </div>
+</section>
+

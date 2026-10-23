@@ -1,0 +1,206 @@
+@{
+    ViewData["Title"] = "Travel Fare Calculator";
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="hero-title">Travel Fare Calculator</h1>
+    <p class="hero-subtitle mb-0">Calculate your fare from distance and rate per kilometer.</p>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Input Section -->
+    <div class="col-12 col-lg-6">
+        <div class="apple-card h-100">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-input-cursor-text fs-5 text-primary"></i>
+                <h2 class="h5 fw-bold mb-0">Fare Parameters</h2>
+            </div>
+
+            <form method="post" asp-action="TravelFare">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label for="distance" class="form-apple-label">Distance in Kilometers (km) <span class="text-danger">*</span></label>
+                    <input type="number" 
+                           id="distance" 
+                           name="distance" 
+                           value="@ViewBag.Distance" 
+                           min="0.1" 
+                           max="10000" 
+                           step="0.1" 
+                           class="form-apple-input" 
+                           placeholder="e.g. 15.5" 
+                           required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="rate" class="form-apple-label">Fare Rate per Kilometer (₱ / km) <span class="text-danger">*</span></label>
+                    <input type="number" 
+                           id="rate" 
+                           name="rate" 
+                           value="@ViewBag.Rate" 
+                           min="0.5" 
+                           max="1000" 
+                           step="0.25" 
+                           class="form-apple-input" 
+                           placeholder="e.g. 15.00" 
+                           required />
+                    <div class="form-text text-secondary small">Philippine standard taxi, jeepney, or ride-share rate.</div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 pt-2">
+                    <button type="submit" class="btn-apple-primary">
+                        <i class="bi bi-cash-stack"></i> Calculate Total Fare
+                    </button>
+                    <a asp-action="TravelFare" class="btn-apple-secondary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="col-12 col-lg-6">
+        <div class="apple-card h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-receipt fs-5 text-primary"></i>
+                    <h2 class="h5 fw-bold mb-0">Calculated Fare Breakdown</h2>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                        @ViewBag.Error
+                    </div>
+                }
+                else if (ViewBag.Success == true)
+                {
+                    <div class="output-hero-panel">
+                        <div class="text-secondary small fw-bold text-uppercase mb-1">Total Trip Fare</div>
+                        <div class="output-value-large text-success">
+                            ₱@string.Format("{0:N2}", ViewBag.TotalFare)
+                        </div>
+                        <div class="mt-3 pt-3 border-top d-flex justify-content-between text-secondary small">
+                            <span>Distance Traveled:</span>
+                            <span class="fw-semibold text-dark">@ViewBag.Distance km</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-secondary small mt-1">
+                            <span>Rate per km:</span>
+                            <span class="fw-semibold text-dark">₱@string.Format("{0:N2}", ViewBag.Rate) / km</span>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-car-front fs-1 mb-2 d-block opacity-50"></i>
+                        <p class="mb-0">Fill in distance and per-km rate, then click <strong>Calculate Total Fare</strong>.</p>
+                    </div>
+                }
+            </div>
+
+            <div class="mt-4 pt-3 border-top text-secondary small">
+                <i class="bi bi-check2-circle text-success me-1"></i> Formatted in Philippine Pesos (₱) with 2 decimal places.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content">
+<div class="row g-4">
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Fare Computation Formula</h6>
+            <p class="text-secondary small">
+                The total fare is a product of linear distance and variable unit rate. C# floating-point math computes the result, which is then formatted using Philippine Peso currency formatters:
+            </p>
+            <div class="p-3 rounded-3 bg-light border font-monospace small">
+                Total Fare = Distance (km) &times; Rate (₱/km)
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Sample Calculations</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Distance</th>
+                            <th>Tariff Rate</th>
+                            <th>Total Fare</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>5.0 km</td>
+                            <td>₱15.00 / km</td>
+                            <td><strong>₱75.00</strong></td>
+                        </tr>
+                        <tr>
+                            <td>12.5 km</td>
+                            <td>₱18.50 / km</td>
+                            <td><strong>₱231.25</strong></td>
+                        </tr>
+                        <tr>
+                            <td>42.0 km</td>
+                            <td>₱22.00 / km</td>
+                            <td><strong>₱924.00</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+</details>
+
+<!-- View C# Logic Section -->
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+<div class="lesson-body" id="fareLogicPanel">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="traffic-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <div class="code-title">InputOutputController.cs — TravelFare</div>
+                <button type="button" class="btn-copy-code" data-code-target="fareCode">
+                    <i class="bi bi-clipboard"></i> Copy Code
+                </button>
+            </div>
+            <pre class="macos-code-body" id="fareCode"><code>[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult TravelFare(double? distance, double? rate)
+{
+    if (!distance.HasValue || distance.Value &lt;= 0)
+    {
+        ViewBag.Error = "Distance must be greater than 0 kilometers.";
+        return View();
+    }
+
+    if (!rate.HasValue || rate.Value &lt;= 0)
+    {
+        ViewBag.Error = "Fare rate must be greater than 0 pesos per kilometer.";
+        return View();
+    }
+
+    double totalFare = distance.Value * rate.Value;
+
+    ViewBag.Distance = distance.Value;
+    ViewBag.Rate = rate.Value;
+    ViewBag.TotalFare = totalFare;
+    ViewBag.Success = true;
+    return View();
+}</code></pre>
+        </div>
+    </div>
+    </div>
+</details>

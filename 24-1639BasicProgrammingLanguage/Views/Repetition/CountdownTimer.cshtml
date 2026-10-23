@@ -1,0 +1,295 @@
+@{
+    ViewData["Title"] = "Countdown Timer";
+    var sequence = ViewBag.Sequence as List<Dictionary<string, object>>;
+    int duration = ViewBag.Duration ?? 10;
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="hero-title">Countdown Timer</h1>
+    <p class="hero-subtitle mb-0">Set a countdown, then start, pause, or reset it.</p>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Live Timer Interactive Component -->
+    <div class="col-12 col-lg-6">
+        <div class="apple-card h-100 d-flex flex-column justify-content-between text-center">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-3 text-start">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-stopwatch fs-5 text-primary"></i>
+                        <h2 class="h5 fw-bold mb-0">Live Countdown Engine</h2>
+                    </div>
+                    <span id="timerStatusBadge" class="apple-badge badge-category">Ready</span>
+                </div>
+
+                <!-- Circular Progress & Display -->
+                <div class="py-4 position-relative d-inline-block">
+                    <svg width="220" height="220" viewBox="0 0 220 220" class="mx-auto">
+                        <circle cx="110" cy="110" r="95" stroke="var(--border-subtle)" stroke-width="12" fill="none" />
+                        <circle id="timerProgressRing" cx="110" cy="110" r="95" stroke="var(--accent-blue)" stroke-width="12" fill="none" 
+                                stroke-dasharray="597" stroke-dashoffset="0" stroke-linecap="round" 
+                                style="transition: stroke-dashoffset 0.8s ease, stroke 0.3s ease; transform: rotate(-90deg); transform-origin: 50% 50%;" />
+                    </svg>
+                    <div class="position-absolute top-50 start-50 translate-middle">
+                        <div id="timerNumberDisplay" class="display-3 fw-bold text-primary font-monospace" style="letter-spacing: -2px;">
+                            @duration
+                        </div>
+                        <div class="text-secondary small fw-medium">SECONDS</div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="d-flex justify-content-center gap-2 my-3">
+                    <button type="button" id="btnStart" class="btn-apple-primary px-4">
+                        <i class="bi bi-play-fill fs-5"></i> Start
+                    </button>
+                    <button type="button" id="btnPause" class="btn-apple-secondary px-4" disabled>
+                        <i class="bi bi-pause-fill fs-5"></i> Pause
+                    </button>
+                    <button type="button" id="btnReset" class="btn-apple-secondary px-4">
+                        <i class="bi bi-arrow-counterclockwise fs-5"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Server Duration Config -->
+            <div class="pt-3 border-top text-start">
+                <form method="post" asp-action="CountdownTimer" class="d-flex align-items-center gap-2">
+                    @Html.AntiForgeryToken()
+                    <div class="flex-grow-1">
+                        <label for="duration" class="form-apple-label small mb-1">Set Default Duration (Seconds):</label>
+                        <input type="number" id="duration" name="duration" value="@duration" min="3" max="300" class="form-apple-input py-1 px-3 small" required />
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-apple-secondary align-self-end py-2">
+                        Update Server Sequence
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Output Section: C# Generated Loop Sequence -->
+    <div class="col-12 col-lg-6">
+        <div class="apple-card h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-list-ol fs-5 text-primary"></i>
+                        <h2 class="h5 fw-bold mb-0">C# Generated Sequence</h2>
+                    </div>
+                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 small">
+                        @(sequence?.Count ?? 0) Steps
+                    </span>
+                </div>
+
+                <p class="text-secondary small mb-3">
+                    The C# backend uses a <code>while</code> repetition statement to model countdown ticks from @duration down to 0:
+                </p>
+
+                @if (sequence != null)
+                {
+                    <div class="table-responsive rounded-3 border overflow-auto" style="max-height: 310px;">
+                        <table class="table table-sm table-hover mb-0 small">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Tick</th>
+                                    <th>Progress</th>
+                                    <th>Log Event Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tick in sequence)
+                                {
+                                    int sec = Convert.ToInt32(tick["second"]);
+                                    <tr>
+                                        <td class="font-monospace fw-bold @(sec == 0 ? "text-danger" : "text-primary")">
+                                            @sec.ToString("D2")s
+                                        </td>
+                                        <td style="width: 120px;">
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar @(sec == 0 ? "bg-success" : "bg-primary")" 
+                                                     style="width: @tick["percent"]%"></div>
+                                            </div>
+                                        </td>
+                                        <td class="@(sec == 0 ? "fw-bold text-success" : "text-secondary")">
+                                            @tick["milestone"]
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+            <div class="mt-4 pt-3 border-top text-secondary small">
+                <i class="bi bi-check2-circle me-1"></i> Synchronous C# iteration + Asynchronous JavaScript <code>setInterval()</code> ticker.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content">
+<div class="row g-4">
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">C# Repetition Logic (While Loop)</h6>
+            <p class="text-secondary small">
+                In C#, a <code>while</code> loop continues iterating while a condition holds true. It decrements the counter variable with each pass, generating an immutable sequence audit table:
+            </p>
+            <div class="p-3 rounded-3 bg-light border font-monospace small">
+                int current = seconds;<br />
+                while (current &gt;= 0)<br />
+                {<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;sequence.Add(new { Second = current, ... });<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;current--;<br />
+                }
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Client-Side Timer State Machine</h6>
+            <p class="text-secondary small">
+                The frontend manages a 4-state timer machine (<strong>Ready</strong>, <strong>Running</strong>, <strong>Paused</strong>, <strong>Complete</strong>) driving SVG stroke offset computations via JavaScript request intervals.
+            </p>
+        </div>
+    </div>
+    </div>
+</details>
+
+<!-- View C# Logic Section -->
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+<div class="lesson-body" id="countdownLogicPanel">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="traffic-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <div class="code-title">RepetitionController.cs — CountdownTimer</div>
+                <button type="button" class="btn-copy-code" data-code-target="timerCode">
+                    <i class="bi bi-clipboard"></i> Copy Code
+                </button>
+            </div>
+            <pre class="macos-code-body" id="timerCode"><code>private void GenerateCountdownSequence(int seconds)
+{
+    // Repetition Statement: C# while loop to simulate countdown sequence ticks
+    var sequence = new List&lt;Dictionary&lt;string, object&gt;&gt;();
+    int current = seconds;
+
+    while (current &gt;= 0)
+    {
+        string milestone = current == 0 ? "🚀 Blastoff / Time's up!" :
+                           current == 1 ? "1 second remaining — Final tick!" :
+                           $"{current} seconds remaining";
+
+        sequence.Add(new Dictionary&lt;string, object&gt;
+        {
+            ["second"] = current,
+            ["percent"] = (int)Math.Round(((double)(seconds - current) / seconds) * 100),
+            ["milestone"] = milestone
+        });
+
+        current--;
+    }
+
+    ViewBag.Sequence = sequence;
+}</code></pre>
+        </div>
+    </div>
+    </div>
+</details>
+
+@section Scripts {
+    <script>
+        const initialSeconds = @duration;
+        let remainingSeconds = initialSeconds;
+        let timerInterval = null;
+        let isRunning = false;
+
+        const displayEl = document.getElementById('timerNumberDisplay');
+        const ringEl = document.getElementById('timerProgressRing');
+        const statusEl = document.getElementById('timerStatusBadge');
+        const btnStart = document.getElementById('btnStart');
+        const btnPause = document.getElementById('btnPause');
+        const btnReset = document.getElementById('btnReset');
+
+        const totalCircumference = 2 * Math.PI * 95; // ~596.9
+
+        function updateDisplay() {
+            displayEl.textContent = remainingSeconds;
+            const progress = (initialSeconds - remainingSeconds) / initialSeconds;
+            const offset = totalCircumference * (1 - progress);
+            ringEl.style.strokeDashoffset = offset;
+
+            if (remainingSeconds === 0) {
+                statusEl.className = 'apple-badge badge-beginner';
+                statusEl.textContent = "Finished!";
+                ringEl.style.stroke = "var(--accent-green)";
+            } else if (isRunning) {
+                statusEl.className = 'apple-badge badge-intermediate';
+                statusEl.textContent = "Running";
+                ringEl.style.stroke = "var(--accent-blue)";
+            } else if (remainingSeconds < initialSeconds) {
+                statusEl.className = 'apple-badge badge-advanced';
+                statusEl.textContent = "Paused";
+                ringEl.style.stroke = "var(--accent-orange)";
+            } else {
+                statusEl.className = 'apple-badge badge-category';
+                statusEl.textContent = "Ready";
+                ringEl.style.stroke = "var(--accent-blue)";
+            }
+        }
+
+        btnStart.addEventListener('click', () => {
+            if (isRunning) return;
+            if (remainingSeconds <= 0) remainingSeconds = initialSeconds;
+
+            isRunning = true;
+            btnStart.disabled = true;
+            btnPause.disabled = false;
+            updateDisplay();
+
+            timerInterval = setInterval(() => {
+                remainingSeconds--;
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    isRunning = false;
+                    btnStart.disabled = false;
+                    btnPause.disabled = true;
+                }
+                updateDisplay();
+            }, 1000);
+        });
+
+        btnPause.addEventListener('click', () => {
+            if (!isRunning) return;
+            clearInterval(timerInterval);
+            timerInterval = null;
+            isRunning = false;
+            btnStart.disabled = false;
+            btnPause.disabled = true;
+            btnStart.innerHTML = '<i class="bi bi-play-fill fs-5"></i> Resume';
+            updateDisplay();
+        });
+
+        btnReset.addEventListener('click', () => {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            isRunning = false;
+            remainingSeconds = initialSeconds;
+            btnStart.disabled = false;
+            btnPause.disabled = true;
+            btnStart.innerHTML = '<i class="bi bi-play-fill fs-5"></i> Start';
+            updateDisplay();
+        });
+
+        updateDisplay();
+    </script>
+}

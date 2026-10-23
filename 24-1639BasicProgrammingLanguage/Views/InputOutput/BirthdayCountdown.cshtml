@@ -1,0 +1,194 @@
+@{
+    ViewData["Title"] = "Birthday Countdown";
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="hero-title">Birthday Countdown</h1>
+    <p class="hero-subtitle mb-0">Convert the days until your birthday into weeks and days.</p>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Input Section -->
+    <div class="col-12 col-lg-6">
+        <div class="apple-card h-100">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-gift fs-5 text-danger"></i>
+                <h2 class="h5 fw-bold mb-0">Countdown Input</h2>
+            </div>
+
+            <form method="post" asp-action="BirthdayCountdown">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label for="daysRemaining" class="form-apple-label">Days Remaining Until Birthday <span class="text-danger">*</span></label>
+                    <input type="number" 
+                           id="daysRemaining" 
+                           name="daysRemaining" 
+                           value="@ViewBag.DaysRemaining" 
+                           min="0" 
+                           max="366" 
+                           step="1" 
+                           class="form-apple-input" 
+                           placeholder="e.g. 45" 
+                           required />
+                    <div class="form-text text-secondary small">Enter remaining days (0 to 366).</div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 pt-2">
+                    <button type="submit" class="btn-apple-primary">
+                        <i class="bi bi-clock-history"></i> Decompose Days
+                    </button>
+                    <a asp-action="BirthdayCountdown" class="btn-apple-secondary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="col-12 col-lg-6">
+        <div class="apple-card h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-calendar-event fs-5 text-primary"></i>
+                    <h2 class="h5 fw-bold mb-0">Countdown Breakdown</h2>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                        @ViewBag.Error
+                    </div>
+                }
+                else if (ViewBag.Success == true)
+                {
+                    <div class="output-hero-panel">
+                        <div class="text-secondary small fw-bold text-uppercase mb-2">Time Until Celebration</div>
+                        <div class="d-flex align-items-baseline gap-3 mb-2">
+                            <span class="output-value-large text-primary">
+                                @ViewBag.Weeks <span class="fs-4 text-secondary fw-normal">weeks</span>
+                            </span>
+                            <span class="fs-3 text-secondary">&amp;</span>
+                            <span class="output-value-large text-danger">
+                                @ViewBag.RemainingDays <span class="fs-4 text-secondary fw-normal">days</span>
+                            </span>
+                        </div>
+                        <p class="text-secondary small mt-2 mb-0">
+                            Total of <strong>@ViewBag.DaysRemaining</strong> days remaining on the calendar clock.
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-balloon fs-1 mb-2 d-block opacity-50"></i>
+                        <p class="mb-0">Enter remaining days and click <strong>Decompose Days</strong> to convert to weeks and days.</p>
+                    </div>
+                }
+            </div>
+
+            <div class="mt-4 pt-3 border-top text-secondary small">
+                <i class="bi bi-percent me-1"></i> Demonstrates integer division (<code>/</code>) and modulus remainder (<code>%</code>).
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content">
+<div class="row g-4">
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Integer Division &amp; Modulus Operator</h6>
+            <p class="text-secondary small">
+                In C#, integer division truncates fractions to yield full 7-day calendar weeks, while the modulus operator (<code>%</code>) extracts the leftover days remainder:
+            </p>
+            <div class="p-3 rounded-3 bg-light border font-monospace small">
+                Weeks = Days &divide; 7<br />
+                Remaining Days = Days % 7
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Sample Calculations</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Input Days</th>
+                            <th>Division Expression</th>
+                            <th>Modulus Expression</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>10 days</td>
+                            <td>10 / 7 = 1</td>
+                            <td>10 % 7 = 3</td>
+                            <td><strong>1 week, 3 days</strong></td>
+                        </tr>
+                        <tr>
+                            <td>45 days</td>
+                            <td>45 / 7 = 6</td>
+                            <td>45 % 7 = 3</td>
+                            <td><strong>6 weeks, 3 days</strong></td>
+                        </tr>
+                        <tr>
+                            <td>100 days</td>
+                            <td>100 / 7 = 14</td>
+                            <td>100 % 7 = 2</td>
+                            <td><strong>14 weeks, 2 days</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+</details>
+
+<!-- View C# Logic Section -->
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+<div class="lesson-body" id="bdayLogicPanel">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="traffic-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <div class="code-title">InputOutputController.cs — BirthdayCountdown</div>
+                <button type="button" class="btn-copy-code" data-code-target="bdayCode">
+                    <i class="bi bi-clipboard"></i> Copy Code
+                </button>
+            </div>
+            <pre class="macos-code-body" id="bdayCode"><code>[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult BirthdayCountdown(int? daysRemaining)
+{
+    if (!daysRemaining.HasValue || daysRemaining.Value &lt; 0)
+    {
+        ViewBag.Error = "Remaining days must be zero or a positive whole number.";
+        return View();
+    }
+
+    int days = daysRemaining.Value;
+    int weeks = days / 7;
+    int remainingDays = days % 7;
+
+    ViewBag.DaysRemaining = days;
+    ViewBag.Weeks = weeks;
+    ViewBag.RemainingDays = remainingDays;
+    ViewBag.Success = true;
+    return View();
+}</code></pre>
+        </div>
+    </div>
+    </div>
+</details>

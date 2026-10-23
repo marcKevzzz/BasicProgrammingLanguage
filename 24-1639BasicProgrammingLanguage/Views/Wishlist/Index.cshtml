@@ -1,0 +1,198 @@
+@{
+    ViewData["Title"] = "Personal Wishlist Manager";
+    var wishlist = ViewBag.Wishlist as List<Dictionary<string, object>> ?? new();
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <h1 class="hero-title">Personal Wishlist Manager</h1>
+            <p class="hero-subtitle mb-0">Keep track of what you want to buy.</p>
+        </div>
+        <a asp-action="Create" class="btn-apple-primary">
+            <i class="bi bi-plus-lg"></i> Add Wishlist Item
+        </a>
+    </div>
+</div>
+
+<!-- Search & Priority Filters -->
+<div class="apple-card shadow-sm p-3 mb-4">
+    <form method="get" asp-action="Index" class="row g-2 align-items-center">
+        <div class="col-12 col-md-6 position-relative">
+            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+            <input type="text" 
+                   name="search" aria-label="Search records" 
+                   value="@ViewBag.Search" 
+                   class="form-apple-input ps-5" 
+                   placeholder="Search wishlist items by name or category..." />
+        </div>
+        <div class="col-6 col-md-3">
+            <select name="priority" class="form-apple-select">
+                <option value="All">All Priorities</option>
+                <option value="High" selected="@(ViewBag.PriorityFilter == "High")">High Priority</option>
+                <option value="Medium" selected="@(ViewBag.PriorityFilter == "Medium")">Medium Priority</option>
+                <option value="Low" selected="@(ViewBag.PriorityFilter == "Low")">Low Priority</option>
+            </select>
+        </div>
+        <div class="col-4 col-md-2">
+            <button type="submit" class="btn-apple-primary w-100 justify-content-center">
+                Filter
+            </button>
+        </div>
+        <div class="col-2 col-md-1">
+            <a asp-action="Index" class="btn-apple-secondary w-100 justify-content-center" title="Reset filters" aria-label="Reset filters">
+                <i class="bi bi-arrow-counterclockwise"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Wishlist Table -->
+<div class="apple-card mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h5 fw-bold mb-0">Wishlist Items (@wishlist.Count Items)</h2>
+    </div>
+
+    <div class="table-responsive apple-table-container">
+        <table class="apple-table">
+            <thead>
+                <tr>
+                    <th style="width: 70px;">ID</th>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Est. Price (₱)</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th class="text-end" style="width: 170px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (wishlist.Count == 0)
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-secondary">
+                            <i class="bi bi-gift fs-1 d-block mb-2 opacity-50"></i>
+                            Your wishlist is empty. Click <strong>Add Wishlist Item</strong> to start dreaming!
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in wishlist)
+                    {
+                        int id = Convert.ToInt32(item["id"]);
+                        bool purchased = Convert.ToBoolean(item["purchased"]);
+                        string pri = item["priority"]?.ToString() ?? "Medium";
+                        var priBadge = pri == "High" ? "bg-danger text-white" :
+                                       pri == "Medium" ? "bg-warning text-dark" : "bg-light text-secondary border";
+
+                        <tr>
+                            <td class="font-monospace text-secondary">#@id</td>
+                            <td>
+                                <span class="fw-bold @(purchased ? "text-decoration-line-through text-secondary" : "text-primary")">
+                                    @item["name"]
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">
+                                    @item["category"]
+                                </span>
+                            </td>
+                            <td class="font-monospace fw-semibold">
+                                ₱@string.Format("{0:N2}", item["price"])
+                            </td>
+                            <td>
+                                <span class="badge @priBadge rounded-pill px-2 py-1 small">
+                                    @pri
+                                </span>
+                            </td>
+                            <td>
+                                <form method="post" asp-action="TogglePurchase" asp-route-id="@id" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm @(purchased ? "btn-success" : "btn-outline-secondary") rounded-pill px-3 py-0 small" title="Click to toggle status" aria-label="Click to toggle status">
+                                        <i class="bi @(purchased ? "bi-check-circle-fill" : "bi-circle") me-1"></i>
+                                        @(purchased ? "Purchased" : "Pending")
+                                    </button>
+                                </form>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1">
+                                    <a asp-action="Edit" asp-route-id="@id" class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Edit item" aria-label="Edit item">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="post" asp-action="Delete" asp-route-id="@id" class="d-inline" onsubmit="return confirm('Delete \'@item["name"]\' from wishlist?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Delete item" aria-label="Delete item">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content">
+<div class="row g-4">
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Boolean Field Mutations</h6>
+            <p class="text-secondary small">
+                The <code>purchased</code> state demonstrates dynamic boolean inversion in C#:
+            </p>
+            <div class="p-3 rounded-3 bg-light border font-monospace small">
+                bool current = (bool)item["purchased"];<br />
+                item["purchased"] = !current;
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Multi-Criteria Filtering</h6>
+            <p class="text-secondary small">
+                Controller action queries combine LINQ <code>.Where()</code> predicates for both free-text searches and priority category filters without SQL queries.
+            </p>
+        </div>
+    </div>
+    </div>
+</details>
+
+<!-- View C# Logic Section -->
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+<div class="lesson-body" id="wishLogicPanel">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="traffic-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <div class="code-title">WishlistController.cs — Toggle &amp; Mutate</div>
+                <button type="button" class="btn-copy-code" data-code-target="wishCode">
+                    <i class="bi bi-clipboard"></i> Copy Code
+                </button>
+            </div>
+            <pre class="macos-code-body" id="wishCode"><code>[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult TogglePurchase(int id)
+{
+    var item = _store.GetById("wishlist", id);
+    if (item != null)
+    {
+        bool current = Convert.ToBoolean(item["purchased"]);
+        _store.Update("wishlist", id, new Dictionary&lt;string, object&gt; { ["purchased"] = !current });
+        TempData["Success"] = $"Status updated: '{item["name"]}' marked as {(current ? "Pending" : "Purchased")}.";
+    }
+    return RedirectToAction(nameof(Index));
+}</code></pre>
+        </div>
+    </div>
+    </div>
+</details>
