@@ -110,8 +110,8 @@
                             <td>
                                 <form method="post" asp-action="TogglePurchase" asp-route-id="@id" class="d-inline">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm @(purchased ? "btn-success" : "btn-outline-secondary") rounded-pill px-3 py-0 small" title="Click to toggle status" aria-label="Click to toggle status">
-                                        <i class="bi @(purchased ? "bi-check-circle-fill" : "bi-circle") me-1"></i>
+                                    <button type="submit" class="btn btn-sm @(purchased ? "btn-success" : "btn-outline-secondary") rounded-pill px-3 py-0 small d-inline-flex align-items-center gap-1 text-nowrap" title="Click to toggle status" aria-label="Click to toggle status">
+                                        <i class="bi @(purchased ? "bi-check-circle-fill" : "bi-circle")"></i>
                                         @(purchased ? "Purchased" : "Pending")
                                     </button>
                                 </form>

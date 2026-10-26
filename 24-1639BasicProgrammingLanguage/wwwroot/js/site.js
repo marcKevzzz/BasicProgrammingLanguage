@@ -4,6 +4,8 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
+    initSidebarGroups();
+    initLessonDetails();
     initMobileSidebar();
     initProgramSearch();
     initCopyCodeButtons();
@@ -65,6 +67,37 @@ function initTheme() {
             theme = event.matches ? 'dark' : 'light';
             applyTheme(theme);
         }
+    });
+}
+
+function initSidebarGroups() {
+    const groups = [...document.querySelectorAll('.nav-group[data-category]')];
+    let restored = false;
+    groups.forEach(group => {
+        const key = `codelab-nav-${group.dataset.category}`;
+        try {
+            group.open = !restored && localStorage.getItem(key) === 'true';
+            restored ||= group.open;
+        } catch { /* Native disclosures still work without storage. */ }
+        group.addEventListener('toggle', () => {
+            if (group.open) groups.forEach(other => { if (other !== group) other.open = false; });
+            groups.forEach(item => {
+                try { localStorage.setItem(`codelab-nav-${item.dataset.category}`, String(item.open)); }
+                catch { /* Keep navigation usable without persistence. */ }
+            });
+        });
+    });
+}
+
+function initLessonDetails() {
+    document.querySelectorAll('.lesson-details').forEach((details, index) => {
+        const key = `codelab-lesson-${window.location.pathname}-${index}`;
+        try { details.open = localStorage.getItem(key) === 'true'; }
+        catch { /* Disclosures still work without storage. */ }
+        details.addEventListener('toggle', () => {
+            try { localStorage.setItem(key, String(details.open)); }
+            catch { /* Keep this page usable without persistence. */ }
+        });
     });
 }
 

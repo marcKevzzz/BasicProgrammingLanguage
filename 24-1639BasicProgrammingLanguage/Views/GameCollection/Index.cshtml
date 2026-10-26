@@ -86,7 +86,7 @@
                         string st = g["status"]?.ToString() ?? "Backlog";
                         int rating = Convert.ToInt32(g["rating"]);
                         var stBadge = st == "Completed" ? "bg-success text-white" :
-                                      st == "In Progress" ? "bg-primary text-white" :
+                                      st == "In Progress" ? "status-in-progress" :
                                       st == "Backlog" ? "bg-warning text-dark" : "bg-light text-secondary border";
 
                         <tr>
@@ -104,7 +104,7 @@
                                 </span>
                             </td>
                             <td>
-                                <span class="text-warning small">
+                                <span class="rating-stars text-warning small" aria-label="@rating out of 5 stars">
                                     @for (int s = 1; s <= 5; s++)
                                     {
                                         if (s <= rating)

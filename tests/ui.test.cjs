@@ -151,3 +151,83 @@ categoryOnly.pills[2].handlers.click({ preventDefault() {} });
 assert.equal(categoryOnly.count.textContent, '1 program');
 assert.equal(categoryOnly.cards[0].style.display, 'none');
 console.log('Category filtering works without a duplicate page search.');
+
+function sidebarGroupsHarness(saved = {}, blocked = false) {
+    const groups = ['io', 'conditional'].map(category => {
+        const group = element();
+        group.dataset.category = category;
+        group.open = false;
+        return group;
+    });
+    const context = vm.createContext({
+        localStorage: {
+            getItem(key) { if (blocked) throw Error('Storage blocked'); return saved[key] ?? null; },
+            setItem(key, value) { if (blocked) throw Error('Storage blocked'); saved[key] = value; }
+        },
+        document: { addEventListener() {}, querySelectorAll() { return groups; } }
+    });
+    vm.runInContext(fs.readFileSync('24-1639BasicProgrammingLanguage/wwwroot/js/site.js', 'utf8'), context);
+    context.initSidebarGroups();
+    return groups;
+}
+const savedGroups = {};
+const firstVisit = sidebarGroupsHarness(savedGroups);
+assert.equal(firstVisit[0].open, false);
+firstVisit[0].open = true;
+firstVisit[0].handlers.toggle();
+const nextPage = sidebarGroupsHarness(savedGroups);
+assert.equal(nextPage[0].open, true);
+assert.equal(nextPage[1].open, false);
+nextPage[1].open = true;
+nextPage[1].handlers.toggle();
+assert.equal(nextPage[0].open, false);
+assert.equal(sidebarGroupsHarness(savedGroups)[1].open, true);
+nextPage[1].open = false;
+nextPage[1].handlers.toggle();
+assert.equal(sidebarGroupsHarness(savedGroups)[0].open, false);
+const privateGroups = sidebarGroupsHarness({}, true);
+privateGroups[0].open = true;
+assert.doesNotThrow(() => privateGroups[0].handlers.toggle());
+console.log('Sidebar state checks passed: closed defaults, navigation/refresh restoration, closing, blocked storage.');
+
+const passwordSource = fs.readFileSync('24-1639BasicProgrammingLanguage/Views/Conditional/PasswordStrength.cshtml', 'utf8');
+const passwordScript = passwordSource.match(/@section Scripts[\s\S]*?<script>([\s\S]*?)<\/script>/)[1];
+const visibilityButton = element(), passwordInput = { type: 'password' }, eye = { className: 'bi bi-eye' };
+vm.runInNewContext(passwordScript, {
+    document: { getElementById(id) { return { btnTogglePasswordVisibility: visibilityButton, password: passwordInput, eyeIcon: eye }[id]; } }
+});
+visibilityButton.handlers.click();
+assert.equal(passwordInput.type, 'text');
+assert.equal(visibilityButton.attributes['aria-label'], 'Hide password');
+assert.equal(visibilityButton.attributes['aria-pressed'], 'true');
+visibilityButton.handlers.click();
+assert.equal(passwordInput.type, 'password');
+assert.equal(visibilityButton.attributes['aria-label'], 'Show password');
+assert.equal(visibilityButton.attributes['aria-pressed'], 'false');
+console.log('Password visibility checks passed: toggling and accessible button state.');
+
+function lessonHarness(pathname, saved = {}, blocked = false) {
+    const details = [element(), element()];
+    const context = vm.createContext({
+        window: { location: { pathname } },
+        localStorage: {
+            getItem(key) { if (blocked) throw Error('Blocked'); return saved[key] ?? null; },
+            setItem(key, value) { if (blocked) throw Error('Blocked'); saved[key] = value; }
+        },
+        document: { addEventListener() {}, querySelectorAll() { return details; } }
+    });
+    vm.runInContext(fs.readFileSync('24-1639BasicProgrammingLanguage/wwwroot/js/site.js', 'utf8'), context);
+    context.initLessonDetails();
+    return details;
+}
+const lessonsSaved = {};
+const lessons = lessonHarness('/InputOutput/AgeCalculator', lessonsSaved);
+assert.equal(lessons[0].open, false);
+lessons.forEach(item => { item.open = true; item.handlers.toggle(); });
+assert.ok(lessonHarness('/InputOutput/AgeCalculator', lessonsSaved).every(item => item.open));
+assert.ok(lessonHarness('/Conditional/BmiChecker', lessonsSaved).every(item => !item.open));
+lessons[0].open = false;
+lessons[0].handlers.toggle();
+assert.equal(lessonHarness('/InputOutput/AgeCalculator', lessonsSaved)[0].open, false);
+assert.doesNotThrow(() => lessonHarness('/test', {}, true)[0].handlers.toggle());
+console.log('Lesson disclosures passed: per-program refresh restoration, independent states, closed defaults, blocked storage.');
