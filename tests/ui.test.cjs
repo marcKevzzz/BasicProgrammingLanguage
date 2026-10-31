@@ -28,7 +28,7 @@ function catalog(queryString, searchEnabled = true) {
             querySelectorAll(selector) { return selector === '.filter-pill' ? pills : cards; }
         }
     });
-    vm.runInContext(fs.readFileSync('24-1639BasicProgrammingLanguage/wwwroot/js/site.js', 'utf8'), context);
+    vm.runInContext(fs.readFileSync('DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING/wwwroot/js/site.js', 'utf8'), context);
     context.initDashboardFilter();
     return { search, count, empty, pills, cards };
 }
@@ -69,7 +69,7 @@ function themeHarness({ reduced = false, transitions = false } = {}) {
             } : undefined
         }
     });
-    vm.runInContext(fs.readFileSync('24-1639BasicProgrammingLanguage/wwwroot/js/site.js', 'utf8'), context);
+    vm.runInContext(fs.readFileSync('DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING/wwwroot/js/site.js', 'utf8'), context);
     context.initTheme();
     return { button, root, get transitionCount() { return transitionCount; } };
 }
@@ -111,7 +111,7 @@ const searchDocument = {
     getElementById(id) { return { 'program-search-dialog': dialog, globalProgramSearch: searchInput, 'search-result-count': resultCount, 'search-empty': emptySearch }[id]; }
 };
 const searchContext = vm.createContext({ document: searchDocument });
-vm.runInContext(fs.readFileSync('24-1639BasicProgrammingLanguage/wwwroot/js/site.js', 'utf8'), searchContext);
+vm.runInContext(fs.readFileSync('DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING/wwwroot/js/site.js', 'utf8'), searchContext);
 searchContext.initProgramSearch();
 trigger.handlers.click();
 assert.equal(dialog.open, true);
@@ -166,7 +166,7 @@ function sidebarGroupsHarness(saved = {}, blocked = false) {
         },
         document: { addEventListener() {}, querySelectorAll() { return groups; } }
     });
-    vm.runInContext(fs.readFileSync('24-1639BasicProgrammingLanguage/wwwroot/js/site.js', 'utf8'), context);
+    vm.runInContext(fs.readFileSync('DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING/wwwroot/js/site.js', 'utf8'), context);
     context.initSidebarGroups();
     return groups;
 }
@@ -190,7 +190,7 @@ privateGroups[0].open = true;
 assert.doesNotThrow(() => privateGroups[0].handlers.toggle());
 console.log('Sidebar state checks passed: closed defaults, navigation/refresh restoration, closing, blocked storage.');
 
-const passwordSource = fs.readFileSync('24-1639BasicProgrammingLanguage/Views/Conditional/PasswordStrength.cshtml', 'utf8');
+const passwordSource = fs.readFileSync('DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING/Views/DELMUNDOMARCKEVIN_241639_Conditional/DELMUNDOMARCKEVIN_241639_PasswordStrength.cshtml', 'utf8');
 const passwordScript = passwordSource.match(/@section Scripts[\s\S]*?<script>([\s\S]*?)<\/script>/)[1];
 const visibilityButton = element(), passwordInput = { type: 'password' }, eye = { className: 'bi bi-eye' };
 vm.runInNewContext(passwordScript, {
@@ -216,18 +216,72 @@ function lessonHarness(pathname, saved = {}, blocked = false) {
         },
         document: { addEventListener() {}, querySelectorAll() { return details; } }
     });
-    vm.runInContext(fs.readFileSync('24-1639BasicProgrammingLanguage/wwwroot/js/site.js', 'utf8'), context);
+    vm.runInContext(fs.readFileSync('DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING/wwwroot/js/site.js', 'utf8'), context);
     context.initLessonDetails();
     return details;
 }
 const lessonsSaved = {};
-const lessons = lessonHarness('/InputOutput/AgeCalculator', lessonsSaved);
+const lessons = lessonHarness('/DELMUNDOMARCKEVIN_241639_InputOutput/AgeCalculator', lessonsSaved);
 assert.equal(lessons[0].open, false);
 lessons.forEach(item => { item.open = true; item.handlers.toggle(); });
-assert.ok(lessonHarness('/InputOutput/AgeCalculator', lessonsSaved).every(item => item.open));
-assert.ok(lessonHarness('/Conditional/BmiChecker', lessonsSaved).every(item => !item.open));
+assert.ok(lessonHarness('/DELMUNDOMARCKEVIN_241639_InputOutput/AgeCalculator', lessonsSaved).every(item => item.open));
+assert.ok(lessonHarness('/DELMUNDOMARCKEVIN_241639_Conditional/BmiChecker', lessonsSaved).every(item => !item.open));
 lessons[0].open = false;
 lessons[0].handlers.toggle();
-assert.equal(lessonHarness('/InputOutput/AgeCalculator', lessonsSaved)[0].open, false);
+assert.equal(lessonHarness('/DELMUNDOMARCKEVIN_241639_InputOutput/AgeCalculator', lessonsSaved)[0].open, false);
 assert.doesNotThrow(() => lessonHarness('/test', {}, true)[0].handlers.toggle());
 console.log('Lesson disclosures passed: per-program refresh restoration, independent states, closed defaults, blocked storage.');
+
+const timerSource = fs.readFileSync('DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING/Views/DELMUNDOMARCKEVIN_241639_Repetition/DELMUNDOMARCKEVIN_241639_CountdownTimer.cshtml', 'utf8');
+const timerScript = timerSource.match(/@section Scripts[\s\S]*?<script>([\s\S]*?)<\/script>/)[1].replace('@duration', '2');
+const timerElements = Object.fromEntries(['timerNumberDisplay', 'timerProgressRing', 'timerStatusBadge', 'btnStart', 'btnPause', 'btnReset'].map(id => [id, element()]));
+let tick, tones = 0;
+class TestAudio {
+    state = 'running'; currentTime = 0; destination = {};
+    resume() { return Promise.resolve(); }
+    createOscillator() { return { frequency: {}, connect() {}, start() { tones++; }, stop() {} }; }
+    createGain() { return { gain: { setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {} }; }
+}
+vm.runInNewContext(timerScript, {
+    window: { AudioContext: TestAudio },
+    document: { getElementById(id) { return timerElements[id]; } },
+    setInterval(callback) { tick = callback; return 1; }, clearInterval() {}
+});
+timerElements.btnStart.handlers.click();
+tick();
+assert.equal(tones, 0);
+tick();
+assert.equal(tones, 3);
+assert.equal(timerElements.timerStatusBadge.textContent, 'Finished!');
+timerElements.btnReset.handlers.click();
+assert.equal(timerElements.timerNumberDisplay.textContent, 2);
+console.log('Countdown checks passed: completion alarm, visible status, reset.');
+
+for (const direction of ['ascending', 'descending']) {
+    const next = element(), reset = element(), message = element();
+    const cells = { children: [], replaceChildren() { this.children = []; }, append(cell) { this.children.push(cell); } };
+    const panel = { dataset: { values: '3,1,2', direction }, querySelector(selector) { return { '[data-sort-next]': next, '[data-sort-reset]': reset, '[data-sort-message]': message, '[data-sort-cells]': cells }[selector]; } };
+    const context = vm.createContext({ document: { addEventListener() {}, querySelectorAll() { return [panel]; }, createElement() { return {}; } } });
+    vm.runInContext(fs.readFileSync('DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING/wwwroot/js/site.js', 'utf8'), context);
+    context.initSortSimulation();
+    for (let i = 0; i < 3; i++) next.handlers.click();
+    assert.equal(cells.children.map(cell => cell.textContent).join(','), direction === 'ascending' ? '1,2,3' : '3,2,1');
+    assert.equal(next.disabled, true);
+    reset.handlers.click();
+    assert.equal(cells.children.map(cell => cell.textContent).join(','), '3,1,2');
+}
+console.log('Sort simulation passed: both directions, completion, restart.');
+
+const gridContext = vm.createContext({ document: { addEventListener() {} } });
+vm.runInContext(fs.readFileSync('DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING/wwwroot/js/site.js', 'utf8'), gridContext);
+assert.equal(gridContext.getTicTacToeOutcome([['X','X','X'],['O','','O'],['','','']]), 'X');
+assert.equal(gridContext.getTicTacToeOutcome([['O','X','X'],['','O',''],['','','O']]), 'O');
+assert.equal(gridContext.getTicTacToeOutcome([['X','O','X'],['X','O','O'],['O','X','X']]), 'draw');
+assert.equal(gridContext.getTicTacToeOutcome([['X','',''],['','',''],['','','']]), null);
+console.log('Tic-tac-toe checks passed: win, diagonal, draw, unfinished.');
+
+assert.equal(gridContext.getWinningCells([['X','X','X'],['','',''],['','','']]).join(','), '0,1,2');
+assert.equal(gridContext.mazeDestination([['S','0'],['1','E']],0,0,'down'), null);
+assert.equal(gridContext.mazeDestination([['S','0'],['1','E']],0,0,'up'), null);
+assert.equal(gridContext.mazeDestination([['S','0'],['1','E']],0,0,'right').join(','), '0,1');
+console.log('Winning highlight and maze movement checks passed.');

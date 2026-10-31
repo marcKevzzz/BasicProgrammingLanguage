@@ -1,0 +1,225 @@
+@{
+    ViewData["Title"] = "Number Guessing Game";
+    var history = ViewBag.History as List<string>;
+    bool isWon = ViewBag.IsWon == true;
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="hero-title">Number Guessing Game</h1>
+    <p class="hero-subtitle mb-0">Guess a number between 1 and 100.</p>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Input Section -->
+    <div class="col-12 col-lg-5">
+        <div class="apple-card h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-dice-5 fs-5 text-primary"></i>
+                    <h2 class="h5 fw-bold mb-0">Submit Guess</h2>
+                </div>
+                <span class="badge bg-light text-secondary border rounded-pill px-3 py-1">
+                    Attempt #@(ViewBag.Attempts ?? 0)
+                </span>
+            </div>
+
+            @if (isWon)
+            {
+                <div class="p-4 text-center rounded-4 bg-success-subtle text-success border border-success-subtle mb-4">
+                    <i class="bi bi-trophy-fill fs-1 d-block mb-2 text-warning"></i>
+                    <h4 class="fw-bold">Victory Achieved!</h4>
+                    <p class="small mb-3">You discovered the secret number in <strong>@ViewBag.Attempts</strong> attempt(s)!</p>
+                    <form method="post" asp-action="NumberGuessing">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="action" value="restart" />
+                        <button type="submit" class="btn-apple-primary">
+                            <i class="bi bi-arrow-clockwise"></i> Play Again (New Number)
+                        </button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <form method="post" asp-action="NumberGuessing">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label for="guess" class="form-apple-label">Your Guess (1 &ndash; 100) <span class="text-danger">*</span></label>
+                        <input type="number" 
+                               id="guess" 
+                               name="guesses" 
+                               min="1" 
+                               max="100" 
+                               class="form-apple-input" 
+                               placeholder="e.g. 50" 
+                               autofocus 
+                               required />
+                        
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 pt-2">
+                        <button type="submit" class="btn-apple-primary flex-grow-1">
+                            <i class="bi bi-bullseye"></i> Submit Guess
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-3 pt-3 border-top">
+                    <form method="post" asp-action="NumberGuessing">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="action" value="restart" />
+                        <button type="submit" class="btn btn-sm btn-apple-secondary w-100">
+                            <i class="bi bi-arrow-counterclockwise"></i> Restart Game (Reset Secret Number)
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="col-12 col-lg-7">
+        <div class="apple-card h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <h2 class="h5 fw-bold mb-0">Game State &amp; Feedback</h2>
+                    </div>
+                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 small">
+                        Session State Active
+                    </span>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                        @ViewBag.Error
+                    </div>
+                }
+
+                @if (ViewBag.Message != null)
+                {
+                    var msgType = ViewBag.MessageType?.ToString() ?? "info";
+                    var alertClass = msgType == "success" ? "alert-success" :
+                                     msgType == "warning" ? "alert-warning" :
+                                     msgType == "primary" ? "alert-info" : "alert-light border";
+
+                    <div class="alert @alertClass rounded-4 shadow-sm py-3 px-4 mb-3" role="alert">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi @(msgType == "success" ? "bi-check-circle-fill" : msgType == "warning" ? "bi-arrow-down-circle" : "bi-arrow-up-circle") fs-4"></i>
+                            <span class="fs-5 fw-semibold">@ViewBag.Message</span>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-4 rounded-4 bg-light border text-center text-secondary mb-3">
+                        <i class="bi bi-question-circle fs-2 d-block mb-1 text-primary"></i>
+                        <p class="mb-0">A secret number between 1 and 100 has been picked in your private session. Enter your first guess!</p>
+                    </div>
+                }
+
+                @if (history != null && history.Count > 0)
+                {
+                    <div class="mt-3">
+                        <div class="text-secondary small fw-bold text-uppercase mb-2">Guess Trajectory History</div>
+                        <div class="list-group list-group-flush rounded-3 border small overflow-auto" style="max-height: 200px;">
+                            @foreach (var h in history.AsEnumerable().Reverse())
+                            {
+                                <div class="list-group-item bg-transparent py-2 d-flex align-items-center gap-2">
+                                    <i class="bi @(h.Contains("Correct") ? "bi-check-circle-fill text-success" : h.Contains("Too high") ? "bi-arrow-down-short text-danger fs-5" : "bi-arrow-up-short text-success fs-5")"></i>
+                                    <span>@h</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content"><p class="text-secondary mb-0">The server chooses a secret number from 1 to 100. A do…while loop checks your guesses in order, reports too high or too low, and stops immediately when one is correct. It runs at least once for every valid submission. The same secret remains until you start a new game.</p></div>
+</details>
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="code-title">DELMUNDOMARCKEVIN_241639_RepetitionController.cs — NumberGuessing</div>
+                <button type="button" class="btn-copy-code" data-code-target="NumberGuessingCode">Copy code</button>
+            </div>
+            <pre class="macos-code-body" id="NumberGuessingCode"><code>public IActionResult NumberGuessing(string? guesses, string? action)
+        {
+            if (action == "restart")
+            {
+                HttpContext.Session.Remove("SecretNumber");
+                HttpContext.Session.Remove("GuessAttempts");
+                HttpContext.Session.Remove("GuessHistory");
+                HttpContext.Session.Remove("GuessWon");
+                EnsureSecretNumber();
+                ViewBag.Attempts = 0;
+                ViewBag.Message = "New game started.";
+                return View();
+            }
+            ViewBag.History = GetGuessHistory();
+            ViewBag.Attempts = HttpContext.Session.GetInt32("GuessAttempts") ?? 0;
+            var tokens = (guesses ?? "").Split(',', StringSplitOptions.TrimEntries);
+            var numbers = new int[tokens.Length];
+            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(guesses) || guesses.Length &gt; 200 || tokens.Length &gt; 20)
+            {
+                ViewBag.Error = "Enter 1–20 guesses from 1 to 100, separated by commas.";
+                return View();
+            }
+            for (int i = 0; i &lt; tokens.Length; i++)
+            {
+                if (!int.TryParse(tokens[i], out numbers[i]) || numbers[i] &lt; 1 || numbers[i] &gt; 100)
+                {
+                    ViewBag.Error = "Every guess must be a whole number from 1 to 100.";
+                    return View();
+                }
+            }
+            EnsureSecretNumber();
+            int secret = HttpContext.Session.GetInt32("SecretNumber")!.Value;
+            int attempts = HttpContext.Session.GetInt32("GuessAttempts") ?? 0;
+            if (HttpContext.Session.GetInt32("GuessWon") == 1)
+            {
+                ViewBag.IsWon = true;
+                ViewBag.Attempts = attempts;
+                ViewBag.Message = "You already found the number. Start a new game to play again.";
+                return View();
+            }
+            var history = GetGuessHistory();
+            int index = 0;
+            bool correct;
+            do
+            {
+                int guess = numbers[index];
+                attempts++;
+                correct = guess == secret;
+                string feedback = correct ? "Correct!" : guess &lt; secret ? "Too low" : "Too high";
+                history.Add($"Attempt {attempts}: {guess} — {feedback}");
+                index++;
+            } while (index &lt; numbers.Length &amp;&amp; !correct);
+
+            HttpContext.Session.SetString("GuessHistory", JsonSerializer.Serialize(history));
+            HttpContext.Session.SetInt32("GuessAttempts", attempts);
+            HttpContext.Session.SetInt32("GuessWon", correct ? 1 : 0);
+            ViewBag.Attempts = attempts;
+            ViewBag.IsWon = correct;
+            ViewBag.History = history;
+            ViewBag.Message = correct ? "You found the number!" : "Try again using the hints below.";
+            return View();
+        }
+
+        private List&lt;string&gt; GetGuessHistory() =&gt;
+            JsonSerializer.Deserialize&lt;List&lt;string&gt;&gt;(HttpContext.Session.GetString("GuessHistory") ?? "[]") ?? new();</code></pre>
+        </div>
+    </div>
+</details>
+

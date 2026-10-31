@@ -1,0 +1,294 @@
+@{
+    ViewData["Title"] = "Internet Plan Recommender";
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="hero-title">Internet Plan Recommender</h1>
+    <p class="hero-subtitle mb-0">Find a plan for your budget and household.</p>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Input Section -->
+    <div class="col-12 col-lg-5">
+        <div class="apple-card h-100">
+            <div class="panel-heading d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-router fs-5 text-primary"></i>
+                <h2 class="h5 fw-bold mb-0">Household Demands</h2>
+            </div>
+
+            <form method="post" asp-action="InternetPlan">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label for="budget" class="form-apple-label">Monthly Budget (₱) <span class="text-danger">*</span></label>
+                    <input type="number" 
+                           id="budget" 
+                           name="budget" 
+                           value="@ViewBag.Budget" 
+                           min="500" 
+                           max="20000" 
+                           step="50" 
+                           class="form-apple-input" 
+                           placeholder="e.g. 1600" 
+                           required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="usage" class="form-apple-label">Primary Household Usage <span class="text-danger">*</span></label>
+                    <select id="usage" name="usage" class="form-apple-select" required>
+                        <option value="Browsing" selected="@(ViewBag.Usage == "Browsing")">🌐 Casual Browsing, Email &amp; Social Media</option>
+                        <option value="Streaming" selected="@(ViewBag.Usage == "Streaming")">📺 HD Video Streaming, Zoom &amp; Work From Home</option>
+                        <option value="Gaming" selected="@(ViewBag.Usage == "Gaming")">🎮 Low-Latency Gaming, 4K Streams &amp; Large Downloads</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="users" class="form-apple-label">Concurrent Active Users <span class="text-danger">*</span></label>
+                    <input type="number" 
+                           id="users" 
+                           name="users" 
+                           value="@ViewBag.Users" 
+                           min="1" 
+                           max="30" 
+                           step="1" 
+                           class="form-apple-input" 
+                           placeholder="e.g. 3" 
+                           required />
+                </div>
+
+                <div class="form-actions d-flex align-items-center gap-2 pt-2">
+                    <button type="submit" class="btn-apple-primary">
+                        <i class="bi bi-wifi"></i> Find Best Plan
+                    </button>
+                    <a asp-action="InternetPlan" asp-route-notice="reset" class="btn-apple-secondary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="col-12 col-lg-7">
+        <div class="apple-card h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="panel-heading d-flex align-items-center gap-2 mb-3">
+                    <h2 class="h5 fw-bold mb-0">Recommended Broadband Tier</h2>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                        @ViewBag.Error
+                    </div>
+                }
+                else if (ViewBag.Success == true)
+                {
+                    bool withinBudget = ViewBag.WithinBudget == true;
+
+                    <div class="output-hero-panel">
+                        <div class="plan-summary mb-2">
+                            <span class="plan-name">
+                                <i class="bi bi-check-circle me-1"></i> @ViewBag.PlanName
+                            </span>
+                            <div class="text-end">
+                                <span class="text-secondary small d-block">Monthly Subscription</span>
+                                <strong class="fs-4 text-primary">₱@string.Format("{0:N2}", ViewBag.PlanCost)</strong>
+                            </div>
+                        </div>
+
+                        <div class="p-3 my-3 rounded-3 bg-light border">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <i class="bi bi-broadcast text-success fs-5"></i>
+                                <span class="fw-bold">@ViewBag.PlanSpeed</span>
+                            </div>
+                            <p class="text-secondary small mb-0">@ViewBag.Explanation</p>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between pt-2">
+                            @if (withinBudget)
+                            {
+                                <div class="text-success small fw-medium">
+                                    <i class="bi bi-check2-circle me-1"></i> Comfortably within your ₱@string.Format("{0:N2}", ViewBag.Budget) budget (₱@string.Format("{0:N2}", ViewBag.BudgetDifference) surplus).
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-secondary small fw-medium">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> Over budget by ₱@string.Format("{0:N2}", ViewBag.BudgetDifference) per month.
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-hdd-network fs-1 mb-2 d-block opacity-50"></i>
+                        <p class="mb-0">Fill in your monthly budget, user count, and primary usage to compute the ideal plan.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content">
+<div class="row g-4">
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Heuristic Classification Logic</h6>
+            <p class="text-secondary small">
+                The algorithm filters based on workload intensity (online gaming vs. standard streaming vs. casual browsing) and concurrency gates (user count &ge; 6 requires tier-4 bandwidth). Budget variances are subsequently evaluated:
+            </p>
+            <div class="p-3 rounded-3 bg-light border font-monospace small">
+                if (Usage == "Gaming" || Users &ge; 6) =&gt; Titan 600<br />
+                else if (Usage == "Streaming" || Users &ge; 3) =&gt; Pro 200 or Connect 50<br />
+                else =&gt; Starter 35
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Broadband Catalog Matrix</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Plan Name</th>
+                            <th>Speed</th>
+                            <th>Monthly Fee</th>
+                            <th>Target Scope</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Starter 35</td>
+                            <td>35 Mbps</td>
+                            <td>₱899</td>
+                            <td>1-2 casual users</td>
+                        </tr>
+                        <tr>
+                            <td>Connect Plus 50</td>
+                            <td>50 Mbps</td>
+                            <td>₱1,299</td>
+                            <td>Budget streaming/WFH</td>
+                        </tr>
+                        <tr>
+                            <td>SpeedStream Pro 200</td>
+                            <td>200 Mbps</td>
+                            <td>₱1,899</td>
+                            <td>Family 4K streaming</td>
+                        </tr>
+                        <tr>
+                            <td>HyperFiber Titan 600</td>
+                            <td>600 Mbps</td>
+                            <td>₱2,899</td>
+                            <td>Heavy gaming / 6+ users</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+</details>
+
+<!-- View C# Logic Section -->
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+<div class="lesson-body" id="internetLogicPanel">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="traffic-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <div class="code-title">DELMUNDOMARCKEVIN_241639_ConditionalController.cs — InternetPlan</div>
+                <button type="button" class="btn-copy-code" data-code-target="internetCode">
+                    <i class="bi bi-clipboard"></i> Copy Code
+                </button>
+            </div>
+            <pre class="macos-code-body" id="internetCode"><code>[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult InternetPlan(double? budget, string? usage, int? users)
+{
+    if (!budget.HasValue || budget.Value &lt;= 0)
+    {
+        ViewBag.Error = "Please specify a monthly budget greater than zero.";
+        return View();
+    }
+
+    if (!users.HasValue || users.Value &lt;= 0)
+    {
+        ViewBag.Error = "Number of users must be at least 1.";
+        return View();
+    }
+
+    double userBudget = budget.Value;
+    int userCount = users.Value;
+    string usageType = usage ?? "Streaming";
+
+    string planName;
+    double planCost;
+    string planSpeed;
+    string explanation;
+
+    // Conditional recommendation tree based on user count and bandwidth demand
+    if (usageType == "Gaming" || userCount &gt;= 6)
+    {
+        planName = "HyperFiber Titan 600";
+        planCost = 2899.00;
+        planSpeed = "600 Mbps Ultra Low-Latency Fiber";
+        explanation = "Recommended for heavy multi-device environments, competitive online gaming, and simultaneous 4K HDR streams.";
+    }
+    else if (usageType == "Streaming" || userCount &gt;= 3)
+    {
+        if (userBudget &lt; 1500)
+        {
+            planName = "Fiber Connect Plus 50";
+            planCost = 1299.00;
+            planSpeed = "50 Mbps Symmetrical";
+            explanation = "A budget-optimized plan delivering reliable HD streaming and stable Zoom/Teams remote work for small households.";
+        }
+        else
+        {
+            planName = "SpeedStream Pro 200";
+            planCost = 1899.00;
+            planSpeed = "200 Mbps Fiber Unlimited";
+            explanation = "Optimal balance for family streaming, university research, remote video conferencing, and rapid cloud backups.";
+        }
+    }
+    else
+    {
+        // Basic browsing / light usage
+        planName = "Fiber Starter 35";
+        planCost = 899.00;
+        planSpeed = "35 Mbps Fiber";
+        explanation = "Ideal for 1-2 users doing daily web browsing, email correspondence, social media, and standard music/video playback.";
+    }
+
+    bool withinBudget = userBudget &gt;= planCost;
+    double budgetDifference = userBudget - planCost;
+
+    ViewBag.Budget = userBudget;
+    ViewBag.Usage = usageType;
+    ViewBag.Users = userCount;
+    ViewBag.PlanName = planName;
+    ViewBag.PlanCost = planCost;
+    ViewBag.PlanSpeed = planSpeed;
+    ViewBag.Explanation = explanation;
+    ViewBag.WithinBudget = withinBudget;
+    ViewBag.BudgetDifference = Math.Abs(budgetDifference);
+    ViewBag.Success = true;
+
+    return View();
+}</code></pre>
+        </div>
+    </div>
+    </div>
+</details>

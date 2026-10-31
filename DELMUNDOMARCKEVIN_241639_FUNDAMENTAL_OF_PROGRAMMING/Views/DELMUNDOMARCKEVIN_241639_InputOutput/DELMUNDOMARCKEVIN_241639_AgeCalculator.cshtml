@@ -1,0 +1,172 @@
+@{
+    ViewData["Title"] = "Age in Days Calculator";
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="hero-title">Age in Days Calculator</h1>
+    <p class="hero-subtitle mb-0">Convert age in years to an approximate number of days.</p>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Input Section -->
+    <div class="col-12 col-lg-6">
+        <div class="apple-card h-100">
+            <div class="panel-heading d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-input-cursor-text fs-5 text-primary"></i>
+                <h2 class="h5 fw-bold mb-0">Inputs</h2>
+            </div>
+
+            <form method="post" asp-action="AgeCalculator">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label for="age" class="form-apple-label">Age in Years <span class="text-danger">*</span></label>
+                    <input type="number" 
+                           id="age" 
+                           name="age" 
+                           value="@ViewBag.Age" 
+                           min="0" 
+                           max="130" 
+                           step="1"
+                           class="form-apple-input" 
+                           placeholder="e.g. 21" 
+                           required />
+                </div>
+
+                <div class="form-actions d-flex align-items-center gap-2 pt-2">
+                    <button type="submit" class="btn-apple-primary">
+                        <i class="bi bi-calculator"></i> Calculate Days
+                    </button>
+                    <a asp-action="AgeCalculator" asp-route-notice="reset" class="btn-apple-secondary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="col-12 col-lg-6">
+        <div class="apple-card h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="panel-heading d-flex align-items-center gap-2 mb-3">
+                    <h2 class="h5 fw-bold mb-0">Result</h2>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                        @ViewBag.Error
+                    </div>
+                }
+                else if (ViewBag.Success == true)
+                {
+                    <div class="output-hero-panel">
+                        <div class="text-secondary small fw-bold text-uppercase mb-1">Approximate Days Lived</div>
+                        <div class="output-value-large">
+                            @string.Format("{0:N0}", ViewBag.Days) <span class="fs-4 text-secondary fw-normal">days</span>
+                        </div>
+                        <p class="text-secondary small mt-3 mb-0">
+                            Based on @ViewBag.Age standard solar years (365 days / year).
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-hourglass-split fs-1 mb-2 d-block opacity-50"></i>
+                        <p class="mb-0">Enter your age and select <strong>Calculate Days</strong> to see your result.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content">
+<div class="row g-4">
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Mathematical Algorithm</h6>
+            <p class="text-secondary small">
+                Multiply age in whole years by 365. Valid ages are 0 to 130.
+            </p>
+            <div class="p-3 rounded-3 bg-light border font-monospace small">
+                Total Days = Age &times; 365
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Sample Input &amp; Output</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Input Age (Years)</th>
+                            <th>Calculation Expression</th>
+                            <th>Result (Days)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>10</td>
+                            <td>10 &times; 365</td>
+                            <td>3,650 days</td>
+                        </tr>
+                        <tr>
+                            <td>20</td>
+                            <td>20 &times; 365</td>
+                            <td>7,300 days</td>
+                        </tr>
+                        <tr>
+                            <td>50</td>
+                            <td>50 &times; 365</td>
+                            <td>18,250 days</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+</details>
+
+<!-- View C# Logic Section (Collapsible) -->
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+<div class="lesson-body" id="csharpLogicPanel">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="traffic-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <div class="code-title">DELMUNDOMARCKEVIN_241639_InputOutputController.cs — AgeCalculator</div>
+                <button type="button" class="btn-copy-code" data-code-target="ageCode">
+                    <i class="bi bi-clipboard"></i> Copy Code
+                </button>
+            </div>
+            <pre class="macos-code-body" id="ageCode"><code>[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult AgeCalculator(int? age)
+{
+    if (!age.HasValue || age.Value &lt; 0 || age.Value &gt; 130)
+    {
+        ViewBag.Error = "Please enter a valid age between 0 and 130 years.";
+        return View();
+    }
+
+    ViewBag.Age = age.Value;
+    ViewBag.Days = age.Value * 365;
+    ViewBag.Success = true;
+    return View();
+}</code></pre>
+        </div>
+    </div>
+    </div>
+</details>

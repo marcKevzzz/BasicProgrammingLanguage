@@ -1,0 +1,51 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_ArrayInput
+@{
+    ViewData["Title"] = "General Weighted Average";
+    ViewData["InputHelp"] = "Enter 1–100 numbers separated by commas or spaces. Example: 5, 2, 9, 1.";
+    ViewData["Matrix"] = false;
+}
+<h1 class="hero-title">General Weighted Average</h1>
+<p class="text-secondary">Arrays · One-dimensional</p>
+<partial name="DELMUNDOMARCKEVIN_241639_ArrayForm" model="Model" />
+
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content"><p>Add all grades, then divide by the number of grades. Each entry has equal weight. For example, 90 and 80 give (90 + 80) ÷ 2 = 85.</p><p>The weighted percentage is rounded to two decimal places before conversion.</p><div class="table-responsive"><table class="apple-table"><thead><tr><th>Percentage</th><th>Grade</th><th>Rating</th><th>Remarks</th></tr></thead><tbody><tr><td>96.50–100</td><td>1.00</td><td>Excellent</td><td>Passed</td></tr><tr><td>92.50–96.49</td><td>1.25</td><td>Very Good</td><td>Passed</td></tr><tr><td>88.50–92.49</td><td>1.50</td><td>Very Good</td><td>Passed</td></tr><tr><td>84.50–88.49</td><td>1.75</td><td>Good</td><td>Passed</td></tr><tr><td>80.50–84.49</td><td>2.00</td><td>Good</td><td>Passed</td></tr><tr><td>76.50–80.49</td><td>2.25</td><td>Satisfactory</td><td>Passed</td></tr><tr><td>72.50–76.49</td><td>2.50</td><td>Satisfactory</td><td>Passed</td></tr><tr><td>68.50–72.49</td><td>2.75</td><td>Fair</td><td>Passed</td></tr><tr><td>64.50–68.49</td><td>3.00</td><td>Fair</td><td>Passed</td></tr><tr><td>Below 64.50</td><td>5.00</td><td>Poor / Failed</td><td>Failed</td></tr></tbody></table></div></div>
+</details>
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="code-title">DELMUNDOMARCKEVIN_241639_ArraysController.cs — SumAverage</div>
+                <button type="button" class="btn-copy-code" data-code-target="SumAverageCode">Copy code</button>
+            </div>
+            <pre class="macos-code-body" id="SumAverageCode"><code>public IActionResult SumAverage(DELMUNDOMARCKEVIN_241639_ArrayInput model)
+    {
+        if (!ModelState.IsValid || !TryNumbers(model.Input, out var values))
+            return Invalid(model, "Enter 1–100 numbers between -1000000 and 1000000, separated by spaces or commas.");
+        if (values.Any(value =&gt; value &lt; 0 || value &gt; 100)) return Invalid(model, "Grades must be between 0 and 100.");
+        decimal total = 0;
+        for (int i = 0; i &lt; values.Length; i++) total += values[i];
+        decimal average = total / values.Length;
+        average = Math.Round(average, 2, MidpointRounding.AwayFromZero);
+        var equivalent = average switch
+        {
+            &gt;= 96.50m =&gt; (1.00m, "Excellent"),
+            &gt;= 92.50m =&gt; (1.25m, "Very Good"),
+            &gt;= 88.50m =&gt; (1.50m, "Very Good"),
+            &gt;= 84.50m =&gt; (1.75m, "Good"),
+            &gt;= 80.50m =&gt; (2.00m, "Good"),
+            &gt;= 76.50m =&gt; (2.25m, "Satisfactory"),
+            &gt;= 72.50m =&gt; (2.50m, "Satisfactory"),
+            &gt;= 68.50m =&gt; (2.75m, "Fair"),
+            &gt;= 64.50m =&gt; (3.00m, "Fair"),
+            _ =&gt; (5.00m, "Poor / Failed")
+        };
+        string remarks = average &gt;= 64.50m ? "Passed" : "Failed";
+        ViewBag.Result = FormattableString.Invariant($"General weighted average: {average:0.00}%\nNumerical grade: {equivalent.Item1:0.00}\nDescriptive rating: {equivalent.Item2}\nRemarks: {remarks}");
+        return View(model);
+    }</code></pre>
+        </div>
+    </div>
+</details>

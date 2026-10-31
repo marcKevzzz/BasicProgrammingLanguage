@@ -1,0 +1,45 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_ArrayInput
+@{
+    ViewData["Title"] = "Bubble Sort";
+    ViewData["InputHelp"] = "Enter 1–100 numbers separated by commas or spaces. Example: 5, 2, 9, 1.";
+    ViewData["Matrix"] = false;
+}
+<h1 class="hero-title">Bubble Sort</h1>
+<p class="text-secondary">Arrays · One-dimensional</p>
+<partial name="DELMUNDOMARCKEVIN_241639_ArrayForm" model="Model" />
+
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content"><ol><li>Compare neighboring values from left to right.</li><li>Swap them whenever the left value is greater.</li><li>Repeat the passes, skipping the already sorted values at the end.</li></ol><p>The sample 42, 7, 19, 3, 28 becomes 3, 7, 19, 28, 42. Equal values are retained. Each pass moves the largest remaining value to its final position.</p></div>
+</details>
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="code-title">DELMUNDOMARCKEVIN_241639_ArraysController.cs — BubbleSort</div>
+                <button type="button" class="btn-copy-code" data-code-target="BubbleSortCode">Copy code</button>
+            </div>
+            <pre class="macos-code-body" id="BubbleSortCode"><code>public IActionResult BubbleSort(DELMUNDOMARCKEVIN_241639_ArrayInput model)
+    {
+        if (!ModelState.IsValid || !TryNumbers(model.Input, out var values))
+            return Invalid(model, "Enter 1–100 numbers between -1000000 and 1000000, separated by spaces or commas.");
+        if (model.Direction is not ("ascending" or "descending")) return Invalid(model, "Choose a sort direction.");
+        for (int pass = 0; pass &lt; values.Length - 1; pass++)
+        {
+            for (int i = 0; i &lt; values.Length - 1 - pass; i++)
+            {
+                if (model.Direction == "ascending" ? values[i] &gt; values[i + 1] : values[i] &lt; values[i + 1])
+                {
+                    decimal temporary = values[i];
+                    values[i] = values[i + 1];
+                    values[i + 1] = temporary;
+                }
+            }
+        }
+        ViewBag.Result = (model.Direction == "descending" ? "Descending: " : "Ascending: ") + FormatArray(values);
+        return View(model);
+    }</code></pre>
+        </div>
+    </div>
+</details>

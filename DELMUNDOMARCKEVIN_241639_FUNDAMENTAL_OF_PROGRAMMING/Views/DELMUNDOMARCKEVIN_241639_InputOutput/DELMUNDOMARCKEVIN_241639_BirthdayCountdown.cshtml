@@ -1,0 +1,186 @@
+@{
+    ViewData["Title"] = "Birthday Countdown";
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="hero-title">Birthday Countdown</h1>
+    <p class="hero-subtitle mb-0">Find the days and weeks until your next birthday.</p>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Input Section -->
+    <div class="col-12 col-lg-6">
+        <div class="apple-card h-100">
+            <div class="panel-heading d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-gift fs-5 text-danger"></i>
+                <h2 class="h5 fw-bold mb-0">Countdown Input</h2>
+            </div>
+
+            <form method="post" asp-action="BirthdayCountdown">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label for="birthday" class="form-apple-label">Birth Date <span class="text-danger">*</span></label>
+                    <input type="date" id="birthday" name="birthday" value="@ViewBag.Birthday"
+                           max="@ViewBag.Today" class="form-apple-input" required />
+                </div>
+
+                <div class="form-actions d-flex align-items-center gap-2 pt-2">
+                    <button type="submit" class="btn-apple-primary">
+                        <i class="bi bi-clock-history"></i> Calculate Countdown
+                    </button>
+                    <a asp-action="BirthdayCountdown" asp-route-notice="reset" class="btn-apple-secondary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="col-12 col-lg-6">
+        <div class="apple-card h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="panel-heading d-flex align-items-center gap-2 mb-3">
+                    <h2 class="h5 fw-bold mb-0">Countdown Breakdown</h2>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                        @ViewBag.Error
+                    </div>
+                }
+                else if (ViewBag.Success == true)
+                {
+                    <div class="output-hero-panel">
+                        <div class="output-value-large mb-2">@ViewBag.DaysRemaining <span class="fs-4 text-secondary fw-normal">days remaining</span></div>
+                        <div class="d-flex flex-wrap align-items-baseline gap-3 mb-2">
+                            <span class="output-value-large text-primary">
+                                @ViewBag.Weeks <span class="fs-4 text-secondary fw-normal">weeks</span>
+                            </span>
+                            <span class="fs-3 text-secondary">&amp;</span>
+                            <span class="output-value-large text-danger">
+                                @ViewBag.RemainingDays <span class="fs-4 text-secondary fw-normal">days</span>
+                            </span>
+                        </div>
+                        <p class="text-secondary small mt-2 mb-0">
+                            Next birthday: <strong>@ViewBag.NextBirthday</strong>.
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-balloon fs-1 mb-2 d-block opacity-50"></i>
+                        <p class="mb-0">Enter your birth date and select <strong>Calculate Countdown</strong>.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content">
+<div class="row g-4">
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Next Birthday Calculation</h6>
+            <p class="text-secondary small">
+                Find the next occurrence of your birthday, then subtract today’s date. Divide the total days by 7 for whole weeks; the remainder gives the extra days.
+            </p>
+            <div class="p-3 rounded-3 bg-light border font-monospace small">
+                Weeks = Days &divide; 7<br />
+                Remaining Days = Days % 7
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Sample Calculations</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Input Days</th>
+                            <th>Division Expression</th>
+                            <th>Modulus Expression</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>10 days</td>
+                            <td>10 / 7 = 1</td>
+                            <td>10 % 7 = 3</td>
+                            <td><strong>1 week, 3 days</strong></td>
+                        </tr>
+                        <tr>
+                            <td>45 days</td>
+                            <td>45 / 7 = 6</td>
+                            <td>45 % 7 = 3</td>
+                            <td><strong>6 weeks, 3 days</strong></td>
+                        </tr>
+                        <tr>
+                            <td>100 days</td>
+                            <td>100 / 7 = 14</td>
+                            <td>100 % 7 = 2</td>
+                            <td><strong>14 weeks, 2 days</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+</details>
+
+<!-- View C# Logic Section -->
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+<div class="lesson-body" id="bdayLogicPanel">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="traffic-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <div class="code-title">DELMUNDOMARCKEVIN_241639_InputOutputController.cs — BirthdayCountdown</div>
+                <button type="button" class="btn-copy-code" data-code-target="bdayCode">
+                    <i class="bi bi-clipboard"></i> Copy Code
+                </button>
+            </div>
+            <pre class="macos-code-body" id="bdayCode"><code>[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult BirthdayCountdown(DateOnly? birthday)
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            ViewBag.Today = today.ToString("yyyy-MM-dd");
+            ViewBag.Birthday = birthday?.ToString("yyyy-MM-dd");
+            if (!ModelState.IsValid || !birthday.HasValue || birthday.Value &gt; today)
+            {
+                ViewBag.Error = "Enter a valid birth date that is today or earlier.";
+                return View();
+            }
+
+            var birthDate = birthday.Value;
+            var nextBirthday = birthDate.AddYears(today.Year - birthDate.Year);
+            if (nextBirthday &lt; today)
+                nextBirthday = birthDate.AddYears(today.Year + 1 - birthDate.Year);
+
+            int days = nextBirthday.DayNumber - today.DayNumber;
+            ViewBag.NextBirthday = nextBirthday.ToString("MMMM d, yyyy");
+            ViewBag.DaysRemaining = days;
+            ViewBag.Weeks = days / 7;
+            ViewBag.RemainingDays = days % 7;
+            ViewBag.Success = true;
+            return View();
+        }</code></pre>
+        </div>
+    </div>
+    </div>
+</details>

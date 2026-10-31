@@ -1,0 +1,94 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_ArrayInput
+@{
+    string action = Context.GetRouteValue("action")?.ToString() ?? "";
+    string icon = action switch { "LargestSmallest" => "bi-arrows-expand", "SumAverage" => "bi-calculator", "ReverseArray" => "bi-arrow-left-right", "BubbleSort" => "bi-sort-numeric-down", _ => "bi-grid-3x3" };
+    bool matrix = ViewData["Matrix"] is true;
+    string? result = ViewBag.Result as string;
+    var inputValues = Model.Input.Split(new[] { ',', ' ', '\t', '\r', '\n', ';' }, StringSplitOptions.RemoveEmptyEntries);
+}
+<div class="row g-4 mb-5 array-workspace">
+    <div class="col-12 col-lg-6">
+        <div class="apple-card h-100">
+            <h2 class="h5 fw-bold mb-3"><i class="bi @icon me-2" aria-hidden="true"></i>@(matrix ? "Matrices" : "Your array")</h2>
+            <form method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+                <div class="array-editor" data-matrix="@matrix.ToString().ToLowerInvariant()" data-grade="@((action == "SumAverage").ToString().ToLowerInvariant())">
+                    <input type="hidden" asp-for="Input" />
+                    <input type="hidden" asp-for="SecondInput" />
+                    @if (matrix)
+                    {
+                        <div class="d-flex gap-2 mb-3">
+                            <label class="form-apple-label">Rows<input class="form-apple-input" type="number" min="1" max="10" value="2" data-rows /></label>
+                            <label class="form-apple-label">Columns<input class="form-apple-input" type="number" min="1" max="10" value="3" data-columns /></label>
+                        </div>
+                    }
+                    <div data-editor-fields></div>
+                    @if (!matrix) { <button type="button" class="btn-apple-secondary mt-2" data-add-value>+ @(action == "SumAverage" ? "Add grade" : "Add number")</button> }
+                </div>
+                @if (action == "BubbleSort")
+                {
+                    <label for="sortDirection" class="form-apple-label mt-3">Order</label>
+                    <select id="sortDirection" name="Direction" class="form-apple-select"><option value="ascending" selected="@(Model.Direction == "ascending")">Ascending</option><option value="descending" selected="@(Model.Direction == "descending")">Descending</option></select>
+                }
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button type="submit" class="btn-apple-primary"><i class="bi bi-play" aria-hidden="true"></i> Run calculation</button>
+                    <a href="@Context.Request.Path" class="btn-apple-secondary">Reset sample</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-12 col-lg-6">
+        <div class="apple-card h-100">
+            <h2 class="h5 fw-bold mb-3">Result</h2>
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger" role="alert">@ViewBag.Error</div>
+            }
+            else if (result != null && action == "BubbleSort")
+            {
+                <div class="sort-simulation" data-values="@Model.Input" data-direction="@Model.Direction">
+                    <div class="array-values" data-sort-cells></div>
+                    <p class="text-secondary" role="status" data-sort-message>Step through each comparison.</p>
+                    <div class="d-flex gap-2"><button type="button" class="btn-apple-primary" data-sort-next>Next step</button><button type="button" class="btn-apple-secondary" data-sort-reset>Restart</button></div>
+                </div>
+            }
+            else if (result != null)
+            {
+                <div class="array-results @(action == "SumAverage" ? (ViewBag.GradePassed == true ? "grade-passed" : "grade-failed") : "")" role="status">
+                @foreach (var line in result.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (matrix)
+                    {
+                        <div class="array-values matrix-result-row">
+                        @foreach (var value in line.Split(new[] { ',', ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries))
+                        { <span class="array-cell">@value</span> }
+                        </div>
+                    }
+                    else if (line.StartsWith("Reversed:") || line.StartsWith("Ascending:"))
+                    {
+                        var separator = line.IndexOf(':');
+                        <p class="form-apple-label">@(separator >= 0 ? line[..separator] : "Output")</p>
+                        <div class="array-values">
+                        @foreach (var value in (separator >= 0 ? line[(separator + 1)..] : line).Split(',', StringSplitOptions.TrimEntries))
+                        { <span class="array-cell">@value</span> }
+                        </div>
+                    }
+                    else
+                    {
+                        var parts = line.Split(':', 2);
+                        <div class="array-stat"><span class="text-secondary">@parts[0]</span><strong>@(parts.Length > 1 ? parts[1].Trim() : "")</strong></div>
+                    }
+                }
+                </div>
+            }
+            else
+            {
+                <div class="array-empty text-center text-secondary py-5">
+                    <i class="bi @(action == "SumAverage" ? "bi-mortarboard" : icon) fs-1 d-block opacity-50 mb-3" aria-hidden="true"></i>
+                    <p class="mb-0">@(action == "SumAverage" ? "Add grades" : "Enter your values"), then click<br /><strong>Run calculation.</strong></p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

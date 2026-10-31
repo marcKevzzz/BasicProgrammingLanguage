@@ -1,0 +1,266 @@
+@{
+    ViewData["Title"] = "Study Time Calculator";
+    var entries = ViewBag.Entries as List<Dictionary<string, object>>;
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="hero-title">Study Time Calculator</h1>
+    <p class="hero-subtitle mb-0">Enter your subjects and hours studied, including decimals such as 1.5. Add as many subjects as you need.</p>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Input Section -->
+    <div class="col-12 col-lg-7">
+        <div class="apple-card h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-book fs-5 text-primary"></i>
+                    <h2 class="h5 fw-bold mb-0">Academic Subjects</h2>
+                </div>
+                <button type="button" class="btn btn-sm btn-apple-secondary" id="btnAddSubject">
+                    <i class="bi bi-plus-circle"></i> Add Subject
+                </button>
+            </div>
+
+            <form method="post" asp-action="StudyTime" id="studyForm">
+                @Html.AntiForgeryToken()
+
+                <div id="subjectRowsContainer" class="d-flex flex-column gap-2 mb-3">
+                    @if (entries != null && entries.Count > 0)
+                    {
+                        for (int i = 0; i < entries.Count; i++)
+                        {
+                            <div class="row g-2 align-items-center subject-row">
+                                <div class="col-7">
+                                    <input type="text" name="subjectNames" aria-label="Subject name" class="form-apple-input" value="@entries[i]["subject"]" placeholder="e.g. Data Structures" required />
+                                </div>
+                                <div class="col-4">
+                                    <input type="number" name="studyHours" aria-label="Study hours" class="form-apple-input" value="@entries[i]["hours"]" step="any" min="0" placeholder="Hours" required />
+                                </div>
+                                <div class="col-1 text-center">
+                                    <button type="button" class="btn btn-sm text-danger btn-remove-row" title="Remove" aria-label="Remove"><i class="bi bi-trash"></i></button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="row g-2 align-items-center subject-row">
+                            <div class="col-7"><input type="text" name="subjectNames" aria-label="Subject name" class="form-apple-input" placeholder="Subject name" required /></div>
+                            <div class="col-4"><input type="number" name="studyHours" aria-label="Study hours" class="form-apple-input" step="any" min="0" placeholder="Hours" required /></div>
+                            <div class="col-1 text-center"><button type="button" class="btn btn-sm text-danger btn-remove-row" aria-label="Remove subject"><i class="bi bi-trash"></i></button></div>
+                        </div>
+                    }
+                </div>
+
+                <div class="form-actions d-flex align-items-center gap-2 pt-2">
+
+
+                    <button type="submit" class="btn-apple-primary">
+                        <i class="bi bi-calculator"></i> Calculate Study Metrics
+                    </button>
+                    <a asp-action="StudyTime" asp-route-notice="reset" class="btn-apple-secondary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="col-12 col-lg-5">
+        <div class="apple-card h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="panel-heading d-flex align-items-center gap-2 mb-3">
+                    <h2 class="h5 fw-bold mb-0">Study Time Summary</h2>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                        @ViewBag.Error
+                    </div>
+                }
+                else if (ViewBag.Success == true)
+                {
+                    <dl class="study-metrics">
+                        <div>
+                            <dt>Total study time</dt>
+                            <dd>@string.Format("{0:F1}", ViewBag.TotalHours)<span>hrs</span></dd>
+                        </div>
+                        <div>
+                            <dt>Average per subject</dt>
+                            <dd>@string.Format("{0:F2}", ViewBag.AverageHours)<span>hrs</span></dd>
+                        </div>
+                    </dl>
+
+                    @if (entries != null)
+                    {
+                        <ul class="study-breakdown" aria-label="Study time by subject">
+                            @foreach (var item in entries)
+                            {
+                                double hours = Convert.ToDouble(item["hours"]);
+                                double percent = ViewBag.TotalHours > 0 ? hours / (double)ViewBag.TotalHours * 100 : 0;
+                                <li>
+                                    <span class="study-subject">@item["subject"]</span>
+                                    <span class="study-allocation">
+                                        <strong>@hours.ToString("0.##") hrs</strong>
+                                        <span>@percent.ToString("F0")% of total</span>
+                                    </span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-mortarboard fs-1 mb-2 d-block opacity-50"></i>
+                        <p class="mb-0">Add subjects and durations, then click <strong>Calculate Study Metrics</strong>.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content">
+<div class="row g-4">
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Array &amp; Collection Processing</h6>
+            <p class="text-secondary small">
+                Form inputs are posted as arrays (<code>string[] subjectNames</code> and <code>double[] studyHours</code>). The C# controller loops through the inputs, verifies individual bounds, sums the total hours, and computes the arithmetic mean:
+            </p>
+            <div class="p-3 rounded-3 bg-light border font-monospace small">
+                Total = &sum;(Hours)<br />
+                Average = Total &divide; Count(Subjects)
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Sample Calculation</h6>
+            <div class="p-3 rounded-3 bg-light border small">
+                <strong>Subject 1:</strong> Math (3.0 hrs)<br />
+                <strong>Subject 2:</strong> Science (2.5 hrs)<br />
+                <strong>Subject 3:</strong> History (1.5 hrs)<br />
+                <hr class="my-2" />
+                <strong>Total Study Time:</strong> 7.0 hours<br />
+                <strong>Average per Subject:</strong> 2.33 hours
+            </div>
+        </div>
+    </div>
+    </div>
+</details>
+
+<!-- View C# Logic Section -->
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+<div class="lesson-body" id="studyLogicPanel">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="traffic-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <div class="code-title">DELMUNDOMARCKEVIN_241639_InputOutputController.cs — StudyTime</div>
+                <button type="button" class="btn-copy-code" data-code-target="studyCode">
+                    <i class="bi bi-clipboard"></i> Copy Code
+                </button>
+            </div>
+            <pre class="macos-code-body" id="studyCode"><code>[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult StudyTime(string[]? subjectNames, double[]? studyHours)
+        {
+            if (subjectNames == null || studyHours == null || subjectNames.Length == 0 || subjectNames.Length != studyHours.Length || !ModelState.IsValid)
+            {
+                ViewBag.Error = "Please enter at least one academic subject and its study duration.";
+                return View();
+            }
+
+            var entries = new List&lt;Dictionary&lt;string, object&gt;&gt;();
+            double totalHours = 0;
+
+            for (int i = 0; i &lt; subjectNames.Length &amp;&amp; i &lt; studyHours.Length; i++)
+            {
+                string name = (subjectNames[i] ?? "").Trim();
+                double hours = studyHours[i];
+
+                if (string.IsNullOrWhiteSpace(name)) continue;
+                if (!double.IsFinite(hours) || hours &lt; 0 || !double.IsFinite(totalHours + hours))
+                {
+                    ViewBag.Error = $"Study hours for '{name}' must be a finite, non-negative number.";
+                    return View();
+                }
+
+                totalHours += hours;
+                entries.Add(new Dictionary&lt;string, object&gt;
+                {
+                    ["subject"] = name,
+                    ["hours"] = hours
+                });
+            }
+
+            if (entries.Count == 0)
+            {
+                ViewBag.Error = "Please provide valid subject names.";
+                return View();
+            }
+
+            double averageHours = totalHours / entries.Count;
+
+            ViewBag.Entries = entries;
+            ViewBag.TotalHours = totalHours;
+            ViewBag.AverageHours = averageHours;
+            ViewBag.Success = true;
+            return View();
+        }</code></pre>
+        </div>
+    </div>
+    </div>
+</details>
+
+@section Scripts {
+    <script>
+        document.getElementById('btnAddSubject').addEventListener('click', () => {
+            const container = document.getElementById('subjectRowsContainer');
+            const row = document.createElement('div');
+            row.className = 'row g-2 align-items-center subject-row';
+            row.innerHTML = `
+                <div class="col-7">
+                    <input type="text" name="subjectNames" aria-label="Subject name" class="form-apple-input" placeholder="Subject Name" required />
+                </div>
+                <div class="col-4">
+                    <input type="number" name="studyHours" aria-label="Study hours" class="form-apple-input" value="" step="any" min="0" placeholder="Hours" required />
+                </div>
+                <div class="col-1 text-center">
+                    <button type="button" class="btn btn-sm text-danger btn-remove-row" title="Remove" aria-label="Remove"><i class="bi bi-trash"></i></button>
+                </div>
+            `;
+            container.appendChild(row);
+            attachRowRemove(row);
+        });
+
+        function attachRowRemove(containerEl) {
+            containerEl.querySelectorAll('.btn-remove-row').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const row = e.target.closest('.subject-row');
+                    const allRows = document.querySelectorAll('.subject-row');
+                    if (allRows.length > 1) {
+                        row.remove();
+                        showToast('Subject removed.');
+                    } else {
+                        showToast('Keep at least one subject.');
+                    }
+                });
+            });
+        }
+
+        attachRowRemove(document);
+    </script>
+}

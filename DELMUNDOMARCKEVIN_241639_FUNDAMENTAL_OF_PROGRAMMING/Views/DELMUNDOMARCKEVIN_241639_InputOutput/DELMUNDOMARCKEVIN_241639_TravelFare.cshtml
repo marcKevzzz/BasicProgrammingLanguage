@@ -1,0 +1,74 @@
+@{ ViewData["Title"] = "Basic Calculator"; }
+<div class="mb-4">
+    <h1 class="hero-title">Basic Calculator</h1>
+    <p class="hero-subtitle mb-0">Add, subtract, multiply, or divide two numbers.</p>
+</div>
+<div class="row g-4 mb-5">
+    <div class="col-12 col-lg-6"><div class="apple-card h-100">
+        <h2 class="h5 fw-bold mb-3"><i class="bi bi-calculator me-2" aria-hidden="true"></i>Numbers</h2>
+        <form method="post" asp-action="TravelFare">
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                <label for="firstNumber" class="form-apple-label">First number</label>
+                <input id="firstNumber" name="firstNumber" type="number" step="any" value="@ViewBag.FirstNumber" class="form-apple-input" required />
+            </div>
+            <fieldset class="operator-selector mb-3">
+                <legend class="form-apple-label">Operation</legend>
+                @foreach (var op in new[] { ("add", "+", "Add"), ("subtract", "−", "Subtract"), ("multiply", "×", "Multiply"), ("divide", "÷", "Divide") })
+                {
+                    <label class="operator-option"><input type="radio" name="operation" value="@op.Item1" aria-label="@op.Item3" checked="@((ViewBag.Operation ?? "add") == op.Item1)" /><span aria-hidden="true">@op.Item2</span></label>
+                }
+            </fieldset>
+            <div class="mb-3">
+                <label for="secondNumber" class="form-apple-label">Second number</label>
+                <input id="secondNumber" name="secondNumber" type="number" step="any" value="@ViewBag.SecondNumber" class="form-apple-input" required />
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn-apple-primary">Calculate</button>
+                <a asp-action="TravelFare" class="btn-apple-secondary">Reset</a>
+            </div>
+        </form>
+    </div></div>
+    <div class="col-12 col-lg-6"><div class="apple-card h-100">
+        <h2 class="h5 fw-bold mb-3">Result</h2>
+        @if (ViewBag.Error != null) { <div class="alert alert-danger" role="alert">@ViewBag.Error</div> }
+        else if (ViewBag.Success == true) { <div class="output-hero-panel" role="status"><p class="text-secondary">@ViewBag.FirstNumber @(ViewBag.Operation == "add" ? "+" : ViewBag.Operation == "subtract" ? "−" : ViewBag.Operation == "multiply" ? "×" : "÷") @ViewBag.SecondNumber</p><div class="output-value-large">= @ViewBag.Result</div></div> }
+        else { <div class="text-center py-5 text-secondary"><i class="bi bi-calculator result-symbol" aria-hidden="true"></i><p>Enter two numbers and choose an operation.</p></div> }
+    </div></div>
+</div>
+<details class="lesson-details"><summary>How it works</summary><div class="lesson-content"><ol><li>Enter the first number. Negative numbers and decimals are supported.</li><li>Select +, −, ×, or ÷, then enter the second number.</li><li>Select Calculate. The order matters for subtraction and division: 12 − 3 is 9, while 3 − 12 is −9.</li></ol><p>For 12 and 3: addition gives 15, subtraction 9, multiplication 36, and division 4. Division by zero is rejected. Decimal arithmetic is used, and results outside its supported range show an error.</p></div></details>
+<details class="lesson-details"><summary>C# code</summary><div class="lesson-content"><div class="macos-code-box"><div class="macos-code-header"><span class="code-title">Basic Calculator</span><button type="button" class="btn-copy-code" data-code-target="calculatorCode">Copy code</button></div><pre class="macos-code-body" id="calculatorCode"><code>[HttpPost, ValidateAntiForgeryToken]
+        public IActionResult TravelFare(decimal? firstNumber, decimal? secondNumber, string? operation)
+        {
+            ViewBag.FirstNumber = firstNumber;
+            ViewBag.SecondNumber = secondNumber;
+            ViewBag.Operation = operation;
+            if (!ModelState.IsValid || !firstNumber.HasValue || !secondNumber.HasValue)
+            {
+                ViewBag.Error = "Enter two valid numbers.";
+                return View();
+            }
+            if (operation is not ("add" or "subtract" or "multiply" or "divide"))
+            {
+                ViewBag.Error = "Choose an operation.";
+                return View();
+            }
+            if (operation == "divide" &amp;&amp; secondNumber == 0)
+            {
+                ViewBag.Error = "Cannot divide by zero.";
+                return View();
+            }
+            try
+            {
+                ViewBag.Result = operation switch
+                {
+                    "add" =&gt; firstNumber.Value + secondNumber.Value,
+                    "subtract" =&gt; firstNumber.Value - secondNumber.Value,
+                    "multiply" =&gt; firstNumber.Value * secondNumber.Value,
+                    _ =&gt; firstNumber.Value / secondNumber.Value
+                };
+                ViewBag.Success = true;
+            }
+            catch (OverflowException) { ViewBag.Error = "The result is too large. Try smaller numbers."; }
+            return View();
+        }</code></pre></div></div></details>

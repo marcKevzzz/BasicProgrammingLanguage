@@ -1,0 +1,4 @@
+@{ ViewData["Title"] = "Tic-Tac-Toe"; }
+<div class="mb-4"><h1 class="hero-title">Tic-Tac-Toe</h1><p class="hero-subtitle">Two players take turns. X starts.</p></div>
+<div class="apple-card mb-5"><div data-tic-tac-toe><p role="status" class="h5 mb-3" data-game-status>X’s turn</p><div class="tic-grid" data-game-board></div><button class="btn-apple-secondary mt-3" type="button" data-game-reset>New game</button></div></div>
+<details class="lesson-details"><summary>How it works</summary><div class="lesson-content"><p>The 3 × 3 array stores X, O, or an empty cell. After every move, check all rows, columns, and both diagonals for three matching symbols. If all cells fill without a winner, the game ends in a draw.</p></div></details>

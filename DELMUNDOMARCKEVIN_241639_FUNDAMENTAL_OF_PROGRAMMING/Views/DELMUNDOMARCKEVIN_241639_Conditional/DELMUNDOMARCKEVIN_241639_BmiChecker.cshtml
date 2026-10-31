@@ -1,0 +1,243 @@
+@{
+    ViewData["Title"] = "BMI Category Checker";
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="hero-title">BMI Category Checker</h1>
+    <p class="hero-subtitle mb-0">Calculate adult BMI from height and weight.</p>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Input Section -->
+    <div class="col-12 col-lg-5">
+        <div class="apple-card h-100">
+            <div class="panel-heading d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-heart-pulse fs-5 text-danger"></i>
+                <h2 class="h5 fw-bold mb-0">Anthropometric Data</h2>
+            </div>
+
+            <form method="post" asp-action="BmiChecker">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label for="weight" class="form-apple-label">Weight in Kilograms (kg) <span class="text-danger">*</span></label>
+                    <input type="number" 
+                           id="weight" 
+                           name="weight" 
+                           value="@ViewBag.Weight" 
+                           min="10" 
+                           max="300" 
+                           step="0.1" 
+                           class="form-apple-input" 
+                           placeholder="e.g. 68.5" 
+                           required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="height" class="form-apple-label">Height in Centimeters (cm) <span class="text-danger">*</span></label>
+                    <input type="number" 
+                           id="height" 
+                           name="height" 
+                           value="@ViewBag.Height" 
+                           min="50" 
+                           max="260" 
+                           step="0.5" 
+                           class="form-apple-input" 
+                           placeholder="e.g. 172" 
+                           required />
+                </div>
+
+                <div class="form-actions d-flex align-items-center gap-2 pt-2">
+                    <button type="submit" class="btn-apple-primary">
+                        <i class="bi bi-calculator"></i> Compute BMI
+                    </button>
+                    <a asp-action="BmiChecker" asp-route-notice="reset" class="btn-apple-secondary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="col-12 col-lg-7">
+        <div class="apple-card h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="panel-heading d-flex align-items-center gap-2 mb-3">
+                    <h2 class="h5 fw-bold mb-0">Health Classification</h2>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                        @ViewBag.Error
+                    </div>
+                }
+                else if (ViewBag.Success == true)
+                {
+                    <div class="output-hero-panel">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-secondary small fw-bold text-uppercase">Computed BMI Score</span>
+                            <span class="badge @ViewBag.BadgeClass px-3 py-1 rounded-pill fs-6 fw-semibold">
+                                @ViewBag.Category
+                            </span>
+                        </div>
+                        <div class="output-value-large mb-2">
+                            @string.Format("{0:F1}", ViewBag.Bmi) <span class="fs-4 text-secondary fw-normal">kg/m&sup2;</span>
+                        </div>
+
+                        <p class="text-secondary small mb-3">
+                            @ViewBag.Advice
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-activity fs-1 mb-2 d-block opacity-50"></i>
+                        <p class="mb-0">Enter your weight (kg) and height (cm) to calculate your BMI and view classification.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<details class="lesson-details">
+    <summary>How it works</summary>
+    <div class="lesson-content">
+<div class="row g-4">
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">Metric Formula &amp; Conversions</h6>
+            <p class="text-secondary small">
+                First, height in centimeters is normalized to meters by dividing by 100. Then, weight in kilograms is divided by the square of height in meters:
+            </p>
+            <div class="p-3 rounded-3 bg-light border font-monospace small">
+                HeightInMeters = HeightCm &divide; 100.0<br />
+                BMI = Weight &divide; (HeightInMeters &times; HeightInMeters)
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <h6 class="fw-bold">WHO Standard Adult Classification</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>BMI Range (kg/m&sup2;)</th>
+                            <th>Category</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>&lt; 18.5</td>
+                            <td><span class="badge bg-warning text-dark">Underweight</span></td>
+                        </tr>
+                        <tr>
+                            <td>18.5 &le; BMI &lt; 25</td>
+                            <td><span class="badge bg-success text-white">Normal Weight</span></td>
+                        </tr>
+                        <tr>
+                            <td>25 &le; BMI &lt; 30</td>
+                            <td><span class="badge bg-warning text-dark">Overweight</span></td>
+                        </tr>
+                        <tr>
+                            <td>&ge; 30.0</td>
+                            <td><span class="badge bg-danger text-white">Obese</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+</details>
+
+<!-- View C# Logic Section -->
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content">
+<div class="lesson-body" id="bmiLogicPanel">
+        <div class="macos-code-box">
+            <div class="macos-code-header">
+                <div class="traffic-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <div class="code-title">DELMUNDOMARCKEVIN_241639_ConditionalController.cs — BmiChecker</div>
+                <button type="button" class="btn-copy-code" data-code-target="bmiCode">
+                    <i class="bi bi-clipboard"></i> Copy Code
+                </button>
+            </div>
+            <pre class="macos-code-body" id="bmiCode"><code>[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult BmiChecker(double? weight, double? height)
+{
+    if (!weight.HasValue || weight.Value &lt;= 10 || weight.Value &gt; 300)
+    {
+        ViewBag.Error = "Please enter a valid weight in kilograms (10 - 300 kg).";
+        return View();
+    }
+
+    if (!height.HasValue || height.Value &lt;= 50 || height.Value &gt; 260)
+    {
+        ViewBag.Error = "Please enter a valid height in centimeters (50 - 260 cm).";
+        return View();
+    }
+
+    double w = weight.Value;
+    double hMeters = height.Value / 100.0;
+    double bmi = w / (hMeters * hMeters);
+
+    string category;
+    string badgeClass;
+    string advice;
+
+    if (bmi &lt; 18.5)
+    {
+        category = "Underweight";
+        badgeClass = "bg-warning text-dark";
+        advice = "Your BMI suggests you may be below the optimal weight range. Consider consulting a nutritionist to build lean muscle mass with nutrient-dense meals.";
+    }
+    else
+    {
+        if (bmi &lt; 25)
+        {
+            category = "Normal Weight";
+            badgeClass = "bg-success text-white";
+            advice = "Great job! Your weight falls within the generally healthy range for your height. Maintain a balanced diet and regular physical activity.";
+        }
+        else
+        {
+            if (bmi &lt; 30)
+            {
+                category = "Overweight";
+                badgeClass = "bg-warning text-dark";
+                advice = "Your BMI is slightly above the standard range. Introducing moderate aerobic exercise and mindful portion control can promote optimal cardiovascular health.";
+            }
+            else
+            {
+                category = "Obese";
+                badgeClass = "bg-danger text-white";
+                advice = "Your BMI indicates obesity, which may increase risks of hypertension and metabolic conditions. We recommend partnering with a medical professional.";
+            }
+        }
+    }
+
+    ViewBag.Weight = w;
+    ViewBag.Height = height.Value;
+    ViewBag.Bmi = bmi;
+    ViewBag.Category = category;
+    ViewBag.BadgeClass = badgeClass;
+    ViewBag.Advice = advice;
+    ViewBag.Success = true;
+
+    return View();
+}</code></pre>
+        </div>
+    </div>
+    </div>
+</details>
