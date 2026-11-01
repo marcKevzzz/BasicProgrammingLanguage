@@ -182,90 +182,30 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
             return View();
         }
 
-        // 3. Internet Plan Recommender
         [HttpGet]
-        public IActionResult InternetPlan()
+        public IActionResult InternetPlan() => RedirectToAction(nameof(Payroll));
+
+        [HttpGet]
+        public IActionResult Payroll()
         {
-            ViewBag.Budget = 1600.0;
-            ViewBag.Usage = "Streaming";
-            ViewBag.Users = 3;
+            ViewBag.Salary = "30000";
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult InternetPlan(double? budget, string? usage, int? users)
+        public IActionResult Payroll(string? salary)
         {
-            if (!budget.HasValue || budget.Value <= 0)
+            ViewBag.Salary = salary;
+            if (!decimal.TryParse(salary, System.Globalization.NumberStyles.AllowDecimalPoint |
+                System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowLeadingWhite |
+                System.Globalization.NumberStyles.AllowTrailingWhite, System.Globalization.CultureInfo.InvariantCulture,
+                out decimal basicSalary) || basicSalary <= 0 || basicSalary != Services.PayrollCalculator.Money(basicSalary))
             {
-                ViewBag.Error = "Please specify a monthly budget greater than zero.";
+                ViewBag.Error = "Enter a positive monthly salary with up to two decimal places, such as 30000.00.";
                 return View();
             }
-
-            if (!users.HasValue || users.Value <= 0)
-            {
-                ViewBag.Error = "Number of users must be at least 1.";
-                return View();
-            }
-
-            double userBudget = budget.Value;
-            int userCount = users.Value;
-            string usageType = usage ?? "Streaming";
-
-            string planName;
-            double planCost;
-            string planSpeed;
-            string explanation;
-
-            // Conditional recommendation tree based on user count and bandwidth demand
-            if (usageType == "Gaming" || userCount >= 6)
-            {
-                planName = "HyperFiber Titan 600";
-                planCost = 2899.00;
-                planSpeed = "600 Mbps Ultra Low-Latency Fiber";
-                explanation = "Recommended for heavy multi-device environments, competitive online gaming, and simultaneous 4K HDR streams.";
-            }
-            else if (usageType == "Streaming" || userCount >= 3)
-            {
-                if (userBudget < 1500)
-                {
-                    planName = "Fiber Connect Plus 50";
-                    planCost = 1299.00;
-                    planSpeed = "50 Mbps Symmetrical";
-                    explanation = "A budget-optimized plan delivering reliable HD streaming and stable Zoom/Teams remote work for small households.";
-                }
-                else
-                {
-                    planName = "SpeedStream Pro 200";
-                    planCost = 1899.00;
-                    planSpeed = "200 Mbps Fiber Unlimited";
-                    explanation = "Optimal balance for family streaming, university research, remote video conferencing, and rapid cloud backups.";
-                }
-            }
-            else
-            {
-                // Basic browsing / light usage
-                planName = "Fiber Starter 35";
-                planCost = 899.00;
-                planSpeed = "35 Mbps Fiber";
-                explanation = "Ideal for 1-2 users doing daily web browsing, email correspondence, social media, and standard music/video playback.";
-            }
-
-            bool withinBudget = userBudget >= planCost;
-            double budgetDifference = userBudget - planCost;
-
-            ViewBag.Budget = userBudget;
-            ViewBag.Usage = usageType;
-            ViewBag.Users = userCount;
-            ViewBag.PlanName = planName;
-            ViewBag.PlanCost = planCost;
-            ViewBag.PlanSpeed = planSpeed;
-            ViewBag.Explanation = explanation;
-            ViewBag.WithinBudget = withinBudget;
-            ViewBag.BudgetDifference = Math.Abs(budgetDifference);
-            ViewBag.Success = true;
-
-            return View();
+            return View(Services.PayrollCalculator.Calculate(basicSalary));
         }
 
         // 4. BMI Category Checker

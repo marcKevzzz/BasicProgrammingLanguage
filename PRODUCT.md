@@ -17,3 +17,5 @@ dotnet run --project DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING
 ```
 
 Verification: `tests/fundamental-requirements.py`, `dotnet run --project tests/Fundamentals`, `dotnet run --project tests/BirthdayCountdown`, and `node tests/ui.test.cjs`. Start a fresh verification instance on port 5214 before running `tests/fundamental-http.py`; its CRUD checks create and remove a test record.
+
+Payroll Calculator replaces Internet Plan Recommender and appears last in Conditional, after Password Strength Checker; the old InternetPlan GET redirects to Payroll. It simulates basic monthly salary for an SSS-covered employee using the January 2025 SSS employee schedule, the 5% PhilHealth premium split equally, HDMF Circular 460, and BIR RR 11-2018 Annex E monthly withholding brackets effective January 2023 onwards. It excludes overtime, bonuses, loans, minimum-wage exemptions, and annual adjustments. The three interactive 2D array pages include focused C# equivalents of their JavaScript logic.

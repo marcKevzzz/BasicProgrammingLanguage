@@ -1,4 +1,42 @@
 @{ ViewData["Title"] = "Tic-Tac-Toe"; }
 <div class="mb-4"><h1 class="hero-title">Tic-Tac-Toe</h1><p class="hero-subtitle">Two players take turns. X starts.</p></div>
 <div class="apple-card mb-5"><div data-tic-tac-toe><p role="status" class="h5 mb-3" data-game-status>X’s turn</p><div class="tic-grid" data-game-board></div><button class="btn-apple-secondary mt-3" type="button" data-game-reset>New game</button></div></div>
-<details class="lesson-details"><summary>How it works</summary><div class="lesson-content"><p>The 3 × 3 array stores X, O, or an empty cell. After every move, check all rows, columns, and both diagonals for three matching symbols. If all cells fill without a winner, the game ends in a draw.</p></div></details>
+<details class="lesson-details"><summary>How it works</summary><div class="lesson-content"><ol><li><strong>Store the board:</strong> a 3 × 3 array holds X, O, or an empty value, and X takes the first turn.</li><li><strong>Validate a move:</strong> a player can fill only an empty cell while the game is unfinished; the row and column identify the exact array element.</li><li><strong>Check all eight lines:</strong> compare each of the three rows, three columns, and two diagonals for three matching non-empty symbols; the interface draws a line through the winning cells.</li><li><strong>Choose the next state:</strong> announce a winner, declare a draw when the board is full, or switch the turn; New game clears all nine cells and returns the turn to X.</li></ol></div></details>
+<details class="lesson-details">
+    <summary>C# code</summary>
+    <div class="lesson-content"><p>The interactive simulation runs in JavaScript; this C# equivalent highlights the same two-dimensional array operations.</p>
+        <div class="macos-code-box">
+            <div class="macos-code-header"><div class="code-title">TicTacToe — core 2D array logic</div><button type="button" class="btn-copy-code" data-code-target="TicTacToeArrayCode">Copy code</button></div>
+            <pre class="macos-code-body" id="TicTacToeArrayCode"><code>char Winner(char[,] board)
+{
+    for (int i = 0; i &lt; 3; i++)
+    {
+        if (board[i, 0] != '\0' &amp;&amp; board[i, 0] == board[i, 1] &amp;&amp; board[i, 1] == board[i, 2])
+            return board[i, 0]; // Row.
+        if (board[0, i] != '\0' &amp;&amp; board[0, i] == board[1, i] &amp;&amp; board[1, i] == board[2, i])
+            return board[0, i]; // Column.
+    }
+    if (board[1, 1] != '\0' &amp;&amp;
+        ((board[0, 0] == board[1, 1] &amp;&amp; board[1, 1] == board[2, 2]) ||
+         (board[0, 2] == board[1, 1] &amp;&amp; board[1, 1] == board[2, 0])))
+        return board[1, 1]; // Either diagonal.
+    return '\0';
+}
+
+<mark class="array-code-highlight">char[,] board = new char[3, 3]; // '\0' means empty.</mark>
+int row = 1, column = 1;
+char turn = 'X';
+if (board[row, column] == '\0' &amp;&amp; Winner(board) == '\0')
+{
+    <mark class="array-code-highlight">board[row, column] = turn;</mark>
+    char winner = Winner(board);
+    bool full = true;
+    foreach (char cell in board)
+        if (cell == '\0') full = false;
+    if (winner != '\0') Console.WriteLine($"{winner} wins!");
+    else if (full) Console.WriteLine("Draw.");
+    else turn = turn == 'X' ? 'O' : 'X';
+}</code></pre>
+        </div>
+    </div>
+</details>

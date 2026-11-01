@@ -8,7 +8,7 @@
 }
 <div class="row g-4 mb-5 array-workspace">
     <div class="col-12 col-lg-6">
-        <div class="apple-card h-100">
+        <div class="apple-card h-100 d-flex flex-column">
             <h2 class="h5 fw-bold mb-3"><i class="bi @icon me-2" aria-hidden="true"></i>@(matrix ? "Matrices" : "Your array")</h2>
             <form method="post">
                 @Html.AntiForgeryToken()
@@ -39,7 +39,7 @@
         </div>
     </div>
     <div class="col-12 col-lg-6">
-        <div class="apple-card h-100">
+        <div class="apple-card h-100 d-flex flex-column">
             <h2 class="h5 fw-bold mb-3">Result</h2>
             @if (ViewBag.Error != null)
             {
@@ -50,7 +50,7 @@
                 <div class="sort-simulation" data-values="@Model.Input" data-direction="@Model.Direction">
                     <div class="array-values" data-sort-cells></div>
                     <p class="text-secondary" role="status" data-sort-message>Step through each comparison.</p>
-                    <div class="d-flex gap-2"><button type="button" class="btn-apple-primary" data-sort-next>Next step</button><button type="button" class="btn-apple-secondary" data-sort-reset>Restart</button></div>
+                    <div class="sort-controls d-flex flex-wrap gap-2"><button type="button" class="btn-apple-primary" data-sort-play>Play</button><button type="button" class="btn-apple-secondary" data-sort-pause>Pause</button><button type="button" class="btn-apple-secondary" data-sort-next>Next step</button><button type="button" class="btn-apple-secondary" data-sort-reset>Restart</button></div>
                 </div>
             }
             else if (result != null)

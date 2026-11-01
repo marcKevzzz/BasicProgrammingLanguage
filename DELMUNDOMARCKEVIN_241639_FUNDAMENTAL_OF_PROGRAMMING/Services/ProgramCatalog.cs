@@ -130,17 +130,6 @@ public sealed class ProgramCatalog
                     ["icon"] = "bi-award"
                 },
                 new() {
-                    ["id"] = 8,
-                    ["title"] = "Internet Plan Recommender",
-                    ["desc"] = "Find a plan for your budget and household.",
-                    ["category"] = "Nested If…Else",
-                    ["categoryId"] = "conditional",
-                    ["difficulty"] = "Intermediate",
-                    ["controller"] = "DELMUNDOMARCKEVIN_241639_Conditional",
-                    ["action"] = "InternetPlan",
-                    ["icon"] = "bi-wifi"
-                },
-                new() {
                     ["id"] = 9,
                     ["title"] = "BMI Category Checker",
                     ["desc"] = "Calculate BMI from height and weight.",
@@ -161,6 +150,18 @@ public sealed class ProgramCatalog
                     ["controller"] = "DELMUNDOMARCKEVIN_241639_Conditional",
                     ["action"] = "PasswordStrength",
                     ["icon"] = "bi-shield-check"
+                },
+
+                new() {
+                    ["id"] = 8,
+                    ["title"] = "Payroll Calculator",
+                    ["desc"] = "Calculate monthly take-home pay after Philippine contributions and withholding tax.",
+                    ["category"] = "Nested If…Else",
+                    ["categoryId"] = "conditional",
+                    ["difficulty"] = "Intermediate",
+                    ["controller"] = "DELMUNDOMARCKEVIN_241639_Conditional",
+                    ["action"] = "Payroll",
+                    ["icon"] = "bi-receipt"
                 },
 
                 // Loops: for, while, then do…while.

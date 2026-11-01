@@ -258,12 +258,19 @@ assert.equal(timerElements.timerNumberDisplay.textContent, 2);
 console.log('Countdown checks passed: completion alarm, visible status, reset.');
 
 for (const direction of ['ascending', 'descending']) {
-    const next = element(), reset = element(), message = element();
-    const cells = { children: [], replaceChildren() { this.children = []; }, append(cell) { this.children.push(cell); } };
-    const panel = { dataset: { values: '3,1,2', direction }, querySelector(selector) { return { '[data-sort-next]': next, '[data-sort-reset]': reset, '[data-sort-message]': message, '[data-sort-cells]': cells }[selector]; } };
-    const context = vm.createContext({ document: { addEventListener() {}, querySelectorAll() { return [panel]; }, createElement() { return {}; } } });
+    const next = element(), reset = element(), message = element(), play = element(), pause = element();
+    const cells = { children: [], replaceChildren() { this.children = []; }, append(cell) { this.children.push(cell); }, insertBefore(b, a) { this.children.splice(this.children.indexOf(b), 1); this.children.splice(this.children.indexOf(a), 0, b); } };
+    const panel = { dataset: { values: '3,1,2', direction }, querySelector(selector) { return { '[data-sort-play]': play, '[data-sort-pause]': pause, '[data-sort-next]': next, '[data-sort-reset]': reset, '[data-sort-message]': message, '[data-sort-cells]': cells }[selector]; } };
+    let pending;
+    const context = vm.createContext({ setTimeout(fn) { pending = fn; return 1; }, clearTimeout() { pending = null; }, window: { matchMedia() { return { matches: true }; } }, document: { addEventListener() {}, querySelectorAll() { return [panel]; }, createElement() { return element(); } } });
     vm.runInContext(fs.readFileSync('DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING/wwwroot/js/site.js', 'utf8'), context);
     context.initSortSimulation();
+    assert.equal(play.disabled, true);
+    assert.equal(pause.disabled, false);
+    pending();
+    pause.handlers.click();
+    assert.equal(pending, null);
+    assert.equal(play.disabled, false);
     for (let i = 0; i < 3; i++) next.handlers.click();
     assert.equal(cells.children.map(cell => cell.textContent).join(','), direction === 'ascending' ? '1,2,3' : '3,2,1');
     assert.equal(next.disabled, true);
@@ -285,3 +292,27 @@ assert.equal(gridContext.mazeDestination([['S','0'],['1','E']],0,0,'down'), null
 assert.equal(gridContext.mazeDestination([['S','0'],['1','E']],0,0,'up'), null);
 assert.equal(gridContext.mazeDestination([['S','0'],['1','E']],0,0,'right').join(','), '0,1');
 console.log('Winning highlight and maze movement checks passed.');
+
+const layouts = new Set();
+for (let sample = 0; sample < 25; sample++) {
+    const maze = gridContext.generateMaze();
+    assert.equal(maze.length, 15); assert.equal(maze[0].length, 25);
+    assert.equal(maze[1][0], 'S'); assert.equal(maze[13][24], 'E');
+    const visited = new Set(['1,0']), queue = [[1,0]];
+    for (let i = 0; i < queue.length; i++) {
+        const [r, c] = queue[i];
+        for (const direction of ['up','down','left','right']) {
+            const target = gridContext.mazeDestination(maze, r, c, direction);
+            if (target && !visited.has(target.join(','))) { visited.add(target.join(',')); queue.push(target); }
+        }
+    }
+    assert.ok(visited.has('13,24'), 'Every generated maze has a reachable exit');
+    layouts.add(JSON.stringify(maze));
+}
+assert.ok(layouts.size >= 5);
+for (const line of [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]) {
+    const board = Array.from({length:3}, () => Array(3).fill(''));
+    line.forEach(i => { board[Math.floor(i/3)][i%3] = 'X'; });
+    assert.equal(gridContext.getWinningCells(board).join(','), line.join(','));
+}
+console.log('Generated maze reachability, variation, and all eight winning lines passed.');

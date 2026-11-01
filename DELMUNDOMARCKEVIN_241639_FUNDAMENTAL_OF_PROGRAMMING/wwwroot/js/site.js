@@ -381,27 +381,79 @@ function initSortSimulation() {
         const cells = panel.querySelector('[data-sort-cells]');
         const message = panel.querySelector('[data-sort-message]');
         const next = panel.querySelector('[data-sort-next]');
-        let values, pass, index;
-        function render(active = -1) {
-            cells.replaceChildren();
-            values.forEach((value, position) => {
-                const cell = document.createElement('span');
-                cell.className = 'array-cell' + (active >= 0 && (position === active || position === active + 1) ? ' sort-comparing' : '');
-                cell.textContent = value; cells.append(cell);
-            });
+        const play = panel.querySelector('[data-sort-play]');
+        const pause = panel.querySelector('[data-sort-pause]');
+        let values, pass, index, playing = false, busy = false, timer, generation = 0;
+        let animations = [];
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const complete = () => pass >= values.length - 1;
+        function controls() {
+            next.disabled = busy || playing || complete();
+            play.disabled = playing || complete();
+            pause.disabled = !playing;
         }
-        function reset() { values = [...original]; pass = 0; index = 0; next.disabled = values.length < 2; message.textContent = values.length < 2 ? 'Already sorted.' : 'Select Next step to compare neighboring values.'; render(); }
-        next.addEventListener('click', () => {
+        function stop() {
+            playing = false; clearTimeout(timer);
+            animations.forEach(animation => animation.pause()); controls();
+        }
+        function schedule() {
+            if (playing && !complete()) timer = setTimeout(step, 700);
+        }
+        async function step() {
+            if (busy || complete()) return;
+            busy = true; controls();
+            const token = generation;
             const left = values[index], right = values[index + 1];
             const swap = descending ? left < right : left > right;
-            if (swap) [values[index], values[index + 1]] = [right, left];
+            const a = cells.children[index], b = cells.children[index + 1];
+            [...cells.children].forEach(cell => cell.classList.remove('sort-comparing'));
+            a.classList.add('sort-comparing'); b.classList.add('sort-comparing');
             message.textContent = `Pass ${pass + 1}: compare ${left} and ${right}. ${swap ? 'Swap them.' : 'Keep their order.'}`;
-            render(index);
+            if (swap && !reducedMotion.matches && a.animate) {
+                const distance = b.getBoundingClientRect().left - a.getBoundingClientRect().left;
+                const frames = (distance, lift) => [
+                    { transform: 'translate(0, 0)' },
+                    { transform: `translate(0, ${lift}px)`, offset: .25 },
+                    { transform: `translate(${distance}px, ${lift}px)`, offset: .75 },
+                    { transform: `translate(${distance}px, 0)` }
+                ];
+                animations = [a.animate(frames(distance, -28), { duration: 650, easing: 'ease-in-out' }), b.animate(frames(-distance, 28), { duration: 650, easing: 'ease-in-out' })];
+                try { await Promise.all(animations.map(animation => animation.finished)); } catch { return; }
+                if (generation !== token) return;
+                animations = [];
+            }
+            if (swap) {
+                [values[index], values[index + 1]] = [right, left];
+                cells.insertBefore(b, a);
+            }
             index++;
             if (index >= values.length - 1 - pass) { pass++; index = 0; }
-            if (pass >= values.length - 1) { next.disabled = true; message.textContent += ' Sorting complete.'; }
+            busy = false;
+            if (complete()) { playing = false; message.textContent += ' Sorting complete.'; }
+            controls(); schedule();
+        }
+        function reset() {
+            generation++; stop(); animations.forEach(animation => animation.cancel()); animations = [];
+            busy = false; values = [...original]; pass = 0; index = 0;
+            cells.replaceChildren();
+            values.forEach(value => {
+                const cell = document.createElement('span'); cell.className = 'array-cell';
+                cell.textContent = value; cells.append(cell);
+            });
+            message.textContent = complete() ? 'Already sorted.' : 'Comparing neighboring values automatically.';
+            playing = !complete() && !document.hidden; controls(); schedule();
+        }
+        next.addEventListener('click', step);
+        play.addEventListener('click', () => {
+            if (playing || complete()) return;
+            playing = true; animations.forEach(animation => animation.play()); controls();
+            if (!busy) schedule();
         });
+        pause.addEventListener('click', stop);
+        document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
         panel.querySelector('[data-sort-reset]').addEventListener('click', reset);
+        // Initialize before stop() updates the control states.
+        values = [...original]; pass = 0;
         reset();
     });
 }
@@ -451,9 +503,20 @@ function initGridPrograms() {
                 const button = document.createElement('button'); button.type = 'button'; button.className = 'tic-cell' + (getWinningCells(board).includes(r * 3 + c) ? ' tic-winning' : '');
                 button.textContent = value; button.disabled = Boolean(value || outcome);
                 button.setAttribute('aria-label', `Row ${r + 1}, column ${c + 1}: ${value || 'empty'}`);
-                button.addEventListener('click', () => { board[r][c] = turn; turn = turn === 'X' ? 'O' : 'X'; render(); const outcome = getTicTacToeOutcome(board); if (outcome) { showToast(outcome === 'draw' ? 'Game ended in a draw.' : `${outcome} wins!`); if (outcome !== 'draw') celebrateWin(panel); } const available = [...grid.children].find(cell => !cell.disabled); available?.focus(); });
+                button.addEventListener('click', () => { board[r][c] = turn; turn = turn === 'X' ? 'O' : 'X'; render(); const outcome = getTicTacToeOutcome(board); if (outcome) { showToast(outcome === 'draw' ? 'Game ended in a draw.' : `${outcome} wins!`); } const available = [...grid.querySelectorAll('button')].find(cell => !cell.disabled); available?.focus(); });
                 grid.append(button);
             }));
+            const winning = getWinningCells(board);
+            if (winning.length) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                line.setAttribute('class', 'tic-win-line'); line.setAttribute('viewBox', '0 0 300 300');
+                line.setAttribute('aria-hidden', 'true');
+                const stroke = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                const [first, , last] = winning;
+                stroke.setAttribute('x1', 50 + first % 3 * 100); stroke.setAttribute('y1', 50 + Math.floor(first / 3) * 100);
+                stroke.setAttribute('x2', 50 + last % 3 * 100); stroke.setAttribute('y2', 50 + Math.floor(last / 3) * 100);
+                line.append(stroke); grid.append(line);
+            }
         }
         function reset() { board = Array.from({ length: 3 }, () => Array(3).fill('')); turn = 'X'; render(); }
         panel.querySelector('[data-game-reset]').addEventListener('click', reset); reset();
@@ -465,18 +528,22 @@ function getWinningCells(board) {
     const cells = board.flat();
     return lines.find(line => cells[line[0]] && line.every(i => cells[i] === cells[line[0]])) || [];
 }
-function celebrateWin(panel) {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const burst = document.createElement('div'); burst.className = 'confetti-burst'; burst.setAttribute('aria-hidden', 'true');
-    for (let i = 0; i < 32; i++) {
-        const piece = document.createElement('span');
-        piece.style.setProperty('--x', `${Math.random() * 500 - 250}px`);
-        piece.style.setProperty('--rotation', `${Math.random() * 720}deg`);
-        piece.style.background = ['#22c55e','#f59e0b','#3b82f6','#ec4899'][i % 4]; burst.append(piece);
+function generateMaze(rows = 15, columns = 25) {
+    const map = Array.from({ length: rows }, () => Array(columns).fill('1'));
+    const stack = [[1, 1]];
+    map[1][1] = '0';
+    while (stack.length) {
+        const [r, c] = stack[stack.length - 1];
+        const options = [[-2,0],[2,0],[0,-2],[0,2]].filter(([dr, dc]) =>
+            r + dr > 0 && r + dr < rows - 1 && c + dc > 0 && c + dc < columns - 1 && map[r + dr][c + dc] === '1');
+        if (!options.length) { stack.pop(); continue; }
+        const [dr, dc] = options[Math.floor(Math.random() * options.length)];
+        map[r + dr / 2][c + dc / 2] = '0'; map[r + dr][c + dc] = '0';
+        stack.push([r + dr, c + dc]);
     }
-    panel.append(burst); setTimeout(() => burst.remove(), 1600);
+    map[1][0] = 'S'; map[rows - 2][columns - 1] = 'E';
+    return map;
 }
-const mazeMap = ['S001000','1101010','0001000','0111110','0000000','1111101','000000E'].map(row => row.split(''));
 function mazeDestination(map, row, col, direction) {
     const delta = { up: [-1,0], down: [1,0], left: [0,-1], right: [0,1] }[direction];
     if (!delta) return null;
@@ -486,7 +553,8 @@ function mazeDestination(map, row, col, direction) {
 function initMaze() {
     document.querySelectorAll('[data-maze]').forEach(panel => {
         const grid = panel.querySelector('[data-maze-grid]'), status = panel.querySelector('[data-maze-status]');
-        let row = 0, col = 0, moves = 0, won = false;
+        let mazeMap = generateMaze(), row = 1, col = 0, moves = 0, won = false;
+        grid.style.setProperty('--maze-columns', mazeMap[0].length);
         function render(message = '') {
             grid.replaceChildren();
             mazeMap.forEach((line, r) => line.forEach((value, c) => {
@@ -505,11 +573,14 @@ function initMaze() {
             render(won ? `Exit reached in ${moves} moves!` : '');
             if (won) showToast('Maze complete!');
         }
-        grid.addEventListener('keydown', event => {
+        panel.addEventListener('keydown', event => {
+            if (event.target.closest('input, textarea, select')) return;
             const direction = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' }[event.key];
             if (direction) { event.preventDefault(); move(direction); }
         });
         panel.querySelectorAll('[data-move]').forEach(button => button.addEventListener('click', () => move(button.dataset.move)));
-        panel.querySelector('[data-maze-reset]').addEventListener('click', () => { row = 0; col = 0; moves = 0; won = false; render(); }); render();
+        panel.querySelector('[data-maze-reset]').addEventListener('click', () => { row = 1; col = 0; moves = 0; won = false; render(); grid.focus(); });
+        panel.querySelector('[data-maze-new]').addEventListener('click', () => { mazeMap = generateMaze(); row = 1; col = 0; moves = 0; won = false; render(); grid.focus(); });
+        render();
     });
 }

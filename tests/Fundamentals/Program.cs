@@ -140,6 +140,29 @@ foreach (var (grade, income, failing, expected) in new[] { (95.0, 10000.0, false
 }
 Console.WriteLine("Catalog, common arrays, validation, and do-while guessing/PIN checks passed.");
 
+Check(string.Join(",", catalog.Programs.Where(p => (string)p["categoryId"] == "conditional").Select(p => p["action"])) ==
+    "OutfitRecommendation,ScholarshipQualification,BmiChecker,PasswordStrength,Payroll", "Payroll follows Password Checker");
+var slip = PayrollCalculator.Calculate(30000m);
+Check(slip.Sss == 1500m && slip.PhilHealth == 750m && slip.PagIbig == 200m, "Payroll employee contributions");
+Check(slip.TaxableIncome == 27550m && slip.WithholdingTax == 1007.55m && slip.NetPay == 26542.45m, "Payroll sample payslip");
+foreach (var example in new[] { (5249.99m, 250m), (5250m, 275m), (34749.99m, 1725m), (34750m, 1750m), (100000m, 1750m) })
+    Check(PayrollCalculator.Calculate(example.Item1).Sss == example.Item2, "SSS schedule boundary");
+Check(PayrollCalculator.Calculate(5000m).PhilHealth == 250m && PayrollCalculator.Calculate(150000m).PhilHealth == 2500m, "PhilHealth floor and cap");
+Check(PayrollCalculator.Calculate(1500m).PagIbig == 15m && PayrollCalculator.Calculate(1500.01m).PagIbig == 30m && PayrollCalculator.Calculate(10000m).PagIbig == 200m, "Pag-IBIG rates and cap");
+foreach (var example in new[] { (20833m, 0m), (20833.01m, 0m), (20834m, .15m), (33332.99m, 1875m), (33333m, 1875m), (66666.99m, 8541.80m), (66667m, 8541.80m), (166666.99m, 33541.80m), (166667m, 33541.80m), (666666.99m, 183541.80m), (666667m, 183541.80m), (1000000m, 300208.35m) })
+    Check(PayrollCalculator.MonthlyTax(example.Item1) == example.Item2, "BIR monthly threshold: " + example.Item1);
+foreach (string? invalid in new string?[] { null, "", "abc", "0", "-1", "1.001", "1e9", "9999999999999999999999999999999999999999" })
+{
+    var payroll = new DELMUNDOMARCKEVIN_241639_ConditionalController();
+    payroll.Payroll(invalid);
+    Check(payroll.ViewBag.Error != null, "Payroll rejects invalid salary: " + invalid);
+}
+var payrollController = new DELMUNDOMARCKEVIN_241639_ConditionalController();
+var payrollView = (Microsoft.AspNetCore.Mvc.ViewResult)payrollController.Payroll("30000.00");
+Check(((PayrollBreakdown)payrollView.Model!).NetPay == 26542.45m, "Payroll POST returns payslip");
+Check(PayrollCalculator.Calculate(decimal.MaxValue).NetPay > 0, "Largest decimal salary cannot overflow");
+Console.WriteLine("Payroll checks passed: validation, contribution schedules, all tax brackets, net pay, navigation order.");
+
 class TestSession : ISession {
     readonly Dictionary<string, byte[]> values = new();
     public bool IsAvailable => true;
