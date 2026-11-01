@@ -43,30 +43,10 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(string? title, string? author, string? genre, int? year)
         {
-            if (string.IsNullOrWhiteSpace(title))
+            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Book(title, author, year);
+            if (validationError != null)
             {
-                ViewBag.Error = "Book title is required.";
-                ViewBag.TitleInput = title;
-                ViewBag.AuthorInput = author;
-                ViewBag.GenreInput = genre;
-                ViewBag.YearInput = year;
-                return View();
-            }
-
-            if (string.IsNullOrWhiteSpace(author))
-            {
-                ViewBag.Error = "Author name is required.";
-                ViewBag.TitleInput = title;
-                ViewBag.AuthorInput = author;
-                ViewBag.GenreInput = genre;
-                ViewBag.YearInput = year;
-                return View();
-            }
-
-            int currentYear = DateTime.Now.Year;
-            if (!year.HasValue || year.Value < 1400 || year.Value > currentYear + 1)
-            {
-                ViewBag.Error = $"Publication year must be between 1400 and {currentYear + 1}.";
+                ViewBag.Error = validationError;
                 ViewBag.TitleInput = title;
                 ViewBag.AuthorInput = author;
                 ViewBag.GenreInput = genre;
@@ -76,10 +56,10 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
             var book = new Dictionary<string, object>
             {
-                ["title"] = title.Trim(),
-                ["author"] = author.Trim(),
+                ["title"] = title!.Trim(),
+                ["author"] = author!.Trim(),
                 ["genre"] = string.IsNullOrWhiteSpace(genre) ? "General" : genre.Trim(),
-                ["year"] = year.Value
+                ["year"] = year!.Value
             };
 
             int newId = _store.Insert("library", book);
@@ -113,9 +93,10 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(author))
+            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Book(title, author, year);
+            if (validationError != null)
             {
-                ViewBag.Error = "Title and Author are both mandatory fields.";
+                ViewBag.Error = validationError;
                 ViewBag.Book = new Dictionary<string, object>
                 {
                     ["id"] = id,
@@ -129,8 +110,8 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
             var updated = new Dictionary<string, object>
             {
-                ["title"] = title.Trim(),
-                ["author"] = author.Trim(),
+                ["title"] = title!.Trim(),
+                ["author"] = author!.Trim(),
                 ["genre"] = string.IsNullOrWhiteSpace(genre) ? "General" : genre.Trim(),
                 ["year"] = year ?? 2000
             };

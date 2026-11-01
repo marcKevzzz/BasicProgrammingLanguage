@@ -51,20 +51,10 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(string? title, string? genre, string? platform, string? status, int? rating)
         {
-            if (string.IsNullOrWhiteSpace(title))
+            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Game(title, rating, status, platform);
+            if (validationError != null)
             {
-                ViewBag.Error = "Game title is required.";
-                ViewBag.TitleInput = title;
-                ViewBag.GenreInput = genre;
-                ViewBag.PlatformInput = platform;
-                ViewBag.StatusInput = status;
-                ViewBag.RatingInput = rating;
-                return View();
-            }
-
-            if (!rating.HasValue || rating.Value < 1 || rating.Value > 5)
-            {
-                ViewBag.Error = "Rating must be between 1 and 5 stars.";
+                ViewBag.Error = validationError;
                 ViewBag.TitleInput = title;
                 ViewBag.GenreInput = genre;
                 ViewBag.PlatformInput = platform;
@@ -75,11 +65,11 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
             var game = new Dictionary<string, object>
             {
-                ["title"] = title.Trim(),
+                ["title"] = title!.Trim(),
                 ["genre"] = string.IsNullOrWhiteSpace(genre) ? "General" : genre.Trim(),
                 ["platform"] = string.IsNullOrWhiteSpace(platform) ? "PC" : platform.Trim(),
                 ["status"] = string.IsNullOrWhiteSpace(status) ? "Backlog" : status.Trim(),
-                ["rating"] = rating.Value
+                ["rating"] = rating!.Value
             };
 
             int newId = _store.Insert("games", game);
@@ -113,9 +103,10 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (string.IsNullOrWhiteSpace(title))
+            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Game(title, rating, status, platform);
+            if (validationError != null)
             {
-                ViewBag.Error = "Game title cannot be blank.";
+                ViewBag.Error = validationError;
                 ViewBag.Game = new Dictionary<string, object>
                 {
                     ["id"] = id,
@@ -130,11 +121,11 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
             var updated = new Dictionary<string, object>
             {
-                ["title"] = title.Trim(),
+                ["title"] = title!.Trim(),
                 ["genre"] = string.IsNullOrWhiteSpace(genre) ? "General" : genre.Trim(),
                 ["platform"] = string.IsNullOrWhiteSpace(platform) ? "PC" : platform.Trim(),
                 ["status"] = string.IsNullOrWhiteSpace(status) ? "Backlog" : status.Trim(),
-                ["rating"] = rating.HasValue && rating.Value >= 1 && rating.Value <= 5 ? rating.Value : 5
+                ["rating"] = rating.HasValue && rating!.Value >= 1 && rating!.Value <= 5 ? rating!.Value : 5
             };
 
             _store.Update("games", id, updated);

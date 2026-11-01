@@ -59,7 +59,6 @@ void ArrayCheck(string action, string input, string? second, string expected)
     typeof(DELMUNDOMARCKEVIN_241639_ArraysController).GetMethod(action, new[] { model.GetType() })!.Invoke(controller, new object[] { model });
     Check(controller.ViewBag.Error == null && ((string)controller.ViewBag.Result).Contains(expected), action);
 }
-ArrayCheck("LargestSmallest", "1,2;3,4", null, "1  3\n2  4");
 
 ArrayCheck("SumAverage", "90, 80, 100", null, "General weighted average: 90");
 ArrayCheck("SumAverage", "90, 80, 100", null, "Numerical grade: 1.50");
@@ -67,26 +66,22 @@ ArrayCheck("SumAverage", "60, 60, 60", null, "Numerical grade: 5.00");
 var invalidGrade = new DELMUNDOMARCKEVIN_241639_ArraysController();
 invalidGrade.SumAverage(new() { Input = "101" });
 Check(invalidGrade.ViewBag.Error != null, "Reject grades above 100");
-ArrayCheck("ReverseArray", "1,2;3,4", null, "3\n7");
 
 ArrayCheck("BubbleSort", "3,-2,3,0,1.5", null, "-2, 0, 1.5, 3, 3");
 ArrayCheck("BubbleSort", "1", null, "1");
-ArrayCheck("MatrixAddition", "1,2;3,4", "5,6;7,8", "6  8\n10  12");
 foreach (var input in new[] { "", "NaN", "1,x", "1000001", "-79228162514264337593543950335", new string('1', 3001) })
 {
     var controller = new DELMUNDOMARCKEVIN_241639_ArraysController();
     controller.SumAverage(new() { Input = input });
     Check(controller.ViewBag.Error != null, "Invalid array accepted");
 }
-foreach (var input in new[] { "1,2;3", ";", "1,2;", string.Join(';', Enumerable.Repeat("1", 11)) })
+foreach (var alias in new[] { ("LargestSmallest", "TheaterSeating"), ("ReverseArray", "TicTacToe"), ("MatrixAddition", "Maze") })
 {
     var controller = new DELMUNDOMARCKEVIN_241639_ArraysController();
-    controller.MatrixAddition(new() { Input = input, SecondInput = "1,2;3,4" });
-    Check(controller.ViewBag.Error != null, "Invalid matrix accepted");
+    var get = (Microsoft.AspNetCore.Mvc.RedirectToActionResult)controller.GetType().GetMethod(alias.Item1, Type.EmptyTypes)!.Invoke(controller, null)!;
+    var post = (Microsoft.AspNetCore.Mvc.RedirectToActionResult)controller.GetType().GetMethod(alias.Item1, new[] { typeof(DELMUNDOMARCKEVIN_241639_ArrayInput) })!.Invoke(controller, new object[] { new DELMUNDOMARCKEVIN_241639_ArrayInput() })!;
+    Check(get.ActionName == alias.Item2 && post.ActionName == alias.Item2, "Consistent legacy routes");
 }
-var mismatch = new DELMUNDOMARCKEVIN_241639_ArraysController();
-mismatch.MatrixAddition(new() { Input = "1,2", SecondInput = "1;2" });
-Check(mismatch.ViewBag.Error != null, "Mismatched matrices accepted");
 DELMUNDOMARCKEVIN_241639_RepetitionController NewLoop() => new() {
     ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = new DefaultHttpContext { Session = new TestSession() } }
 };
@@ -162,6 +157,31 @@ var payrollView = (Microsoft.AspNetCore.Mvc.ViewResult)payrollController.Payroll
 Check(((PayrollBreakdown)payrollView.Model!).NetPay == 26542.45m, "Payroll POST returns payslip");
 Check(PayrollCalculator.Calculate(decimal.MaxValue).NetPay > 0, "Largest decimal salary cannot overflow");
 Console.WriteLine("Payroll checks passed: validation, contribution schedules, all tax brackets, net pay, navigation order.");
+
+
+var crudStore = new InMemoryCrudStore();
+var invalidBook = new DELMUNDOMARCKEVIN_241639_LibraryController(crudStore);
+invalidBook.Edit(1, "Valid title", "Valid author", "Test", 1200);
+Check(invalidBook.ViewBag.Error != null && Convert.ToInt32(crudStore.GetById("library", 1)!["year"]) != 1200, "Book edit rejects invalid years without changing data");
+var invalidWish = new DELMUNDOMARCKEVIN_241639_WishlistController(crudStore);
+invalidWish.Edit(1, "Valid item", "Test", -1, "High", false);
+Check(invalidWish.ViewBag.Error != null && Convert.ToDouble(crudStore.GetById("wishlist", 1)!["price"]) >= 0, "Wishlist edit rejects negative prices");
+var invalidGame = new DELMUNDOMARCKEVIN_241639_GameCollectionController(crudStore);
+invalidGame.Edit(1, "Valid title", "Test", "PC", "Backlog", 6);
+Check(invalidGame.ViewBag.Error != null, "Game edit rejects invalid rating instead of silently using five");
+var invalidAttendance = new DELMUNDOMARCKEVIN_241639_AttendanceController(crudStore);
+invalidAttendance.Edit(1, "Student", "123", "CS", "A", "2026-02-30", "Present");
+Check(invalidAttendance.ViewBag.Error != null, "Attendance rejects impossible dates");
+var invalidReport = new DELMUNDOMARCKEVIN_241639_LostFoundController(crudStore);
+invalidReport.Edit(1, "Item", "Description", "Office", "2026-11-01", "Unknown");
+Check(invalidReport.ViewBag.Error != null, "Lost and found rejects unknown statuses");
+Check(CrudValidation.Wishlist("Item", double.NaN, "Medium") != null && CrudValidation.Wishlist("Item", double.PositiveInfinity, "Medium") != null, "Non-finite prices rejected");
+Check(CrudValidation.Book("Book", "Author", 2026) == null && CrudValidation.Attendance("Student", "123", "2024-02-29", "Present") == null, "Valid CRUD inputs accepted");
+var bindingFailure = new DELMUNDOMARCKEVIN_241639_GameCollectionController(crudStore);
+bindingFailure.ModelState.AddModelError("rating", "Not an integer");
+bindingFailure.Create("Game", "Test", "PC", "Backlog", 5);
+Check(bindingFailure.ViewBag.Error != null, "CRUD rejects model-binding errors without adding models");
+Console.WriteLine("CRUD validation regressions passed: years, prices, ratings, dates, statuses, and binding errors.");
 
 class TestSession : ISession {
     readonly Dictionary<string, byte[]> values = new();

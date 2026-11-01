@@ -17,14 +17,30 @@
     <div class="lesson-content">
         <div class="macos-code-box">
             <div class="macos-code-header">
-                <div class="code-title">DELMUNDOMARCKEVIN_241639_ArraysController.cs — SumAverage</div>
+                <div class="code-title">ArrayCalculations.cs — SumAverage</div>
                 <button type="button" class="btn-copy-code" data-code-target="SumAverageCode">Copy code</button>
             </div>
-            <pre class="macos-code-body" id="SumAverageCode"><code>public IActionResult SumAverage(DELMUNDOMARCKEVIN_241639_ArrayInput model)
+            <pre class="macos-code-body" id="SumAverageCode"><code>using System.Globalization;
+namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Services;
+
+public static class ArrayCalculations
+{
+    public static bool TryNumbers(string? input, out decimal[] values)
     {
-        if (!ModelState.IsValid || !TryNumbers(model.Input, out var values))
-            return Invalid(model, "Enter 1–100 numbers between -1000000 and 1000000, separated by spaces or commas.");
-        if (values.Any(value =&gt; value &lt; 0 || value &gt; 100)) return Invalid(model, "Grades must be between 0 and 100.");
+        values = [];
+        if (string.IsNullOrWhiteSpace(input) || input.Length &gt; 3000) return false;
+        var tokens = input.Split(new[] { ',', ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        if (tokens.Length is &lt; 1 or &gt; 100) return false;
+        values = new decimal[tokens.Length];
+        for (int i = 0; i &lt; tokens.Length; i++)
+            if (!decimal.TryParse(tokens[i], NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+                CultureInfo.InvariantCulture, out values[i]) || values[i] &lt; -1000000 || values[i] &gt; 1000000) return false;
+        return true;
+    }
+
+
+    public static (string Result, bool Passed) GradeAverage(decimal[] values)
+    {
         decimal total = 0;
         for (int i = 0; i &lt; values.Length; i++) total += values[i];
         decimal average = total / values.Length;
@@ -43,9 +59,30 @@
             _ =&gt; (5.00m, "Poor / Failed")
         };
         string remarks = average &gt;= 64.50m ? "Passed" : "Failed";
-        ViewBag.Result = FormattableString.Invariant($"General weighted average: {average:0.00}%\nNumerical grade: {equivalent.Item1:0.00}\nDescriptive rating: {equivalent.Item2}\nRemarks: {remarks}");
-        return View(model);
-    }</code></pre>
+        string result = FormattableString.Invariant($"General weighted average: {average:0.00}%\nNumerical grade: {equivalent.Item1:0.00}\nDescriptive rating: {equivalent.Item2}\nRemarks: {remarks}");
+        return (result, average &gt;= 64.50m);
+    }
+
+    public static string BubbleSort(decimal[] input, string direction)
+    {
+        var values = (decimal[])input.Clone();
+        for (int pass = 0; pass &lt; values.Length - 1; pass++)
+        {
+            for (int i = 0; i &lt; values.Length - 1 - pass; i++)
+            {
+                if (direction == "ascending" ? values[i] &gt; values[i + 1] : values[i] &lt; values[i + 1])
+                {
+                    decimal temporary = values[i];
+                    values[i] = values[i + 1];
+                    values[i + 1] = temporary;
+                }
+            }
+        }
+        return (direction == "descending" ? "Descending: " : "Ascending: ") +
+            string.Join(", ", values.Select(value =&gt; value.ToString(CultureInfo.InvariantCulture)));
+    }
+}
+</code></pre>
         </div>
     </div>
 </details>

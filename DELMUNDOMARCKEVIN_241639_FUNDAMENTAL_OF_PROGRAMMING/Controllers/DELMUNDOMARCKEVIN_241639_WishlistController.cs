@@ -50,19 +50,10 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(string? name, string? category, double? price, string? priority, bool purchased)
         {
-            if (string.IsNullOrWhiteSpace(name))
+            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Wishlist(name, price, priority);
+            if (validationError != null)
             {
-                ViewBag.Error = "Item name is required.";
-                ViewBag.NameInput = name;
-                ViewBag.CategoryInput = category;
-                ViewBag.PriceInput = price;
-                ViewBag.PriorityInput = priority;
-                return View();
-            }
-
-            if (!price.HasValue || price.Value < 0)
-            {
-                ViewBag.Error = "Estimated price must be zero or a positive amount.";
+                ViewBag.Error = validationError;
                 ViewBag.NameInput = name;
                 ViewBag.CategoryInput = category;
                 ViewBag.PriceInput = price;
@@ -72,9 +63,9 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
             var item = new Dictionary<string, object>
             {
-                ["name"] = name.Trim(),
+                ["name"] = name!.Trim(),
                 ["category"] = string.IsNullOrWhiteSpace(category) ? "General" : category.Trim(),
-                ["price"] = price.Value,
+                ["price"] = price!.Value,
                 ["priority"] = string.IsNullOrWhiteSpace(priority) ? "Medium" : priority.Trim(),
                 ["purchased"] = purchased
             };
@@ -110,9 +101,10 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (string.IsNullOrWhiteSpace(name))
+            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Wishlist(name, price, priority);
+            if (validationError != null)
             {
-                ViewBag.Error = "Item name cannot be blank.";
+                ViewBag.Error = validationError;
                 ViewBag.Item = new Dictionary<string, object>
                 {
                     ["id"] = id,
@@ -127,7 +119,7 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
             var updated = new Dictionary<string, object>
             {
-                ["name"] = name.Trim(),
+                ["name"] = name!.Trim(),
                 ["category"] = string.IsNullOrWhiteSpace(category) ? "General" : category.Trim(),
                 ["price"] = price ?? 0,
                 ["priority"] = string.IsNullOrWhiteSpace(priority) ? "Medium" : priority.Trim(),

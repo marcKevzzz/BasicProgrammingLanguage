@@ -51,20 +51,10 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(string? name, string? description, string? location, string? date, string? status)
         {
-            if (string.IsNullOrWhiteSpace(name))
+            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.LostFound(name, location, date, status);
+            if (validationError != null)
             {
-                ViewBag.Error = "Item name is required.";
-                ViewBag.NameInput = name;
-                ViewBag.DescriptionInput = description;
-                ViewBag.LocationInput = location;
-                ViewBag.DateInput = date;
-                ViewBag.StatusInput = status;
-                return View();
-            }
-
-            if (string.IsNullOrWhiteSpace(location))
-            {
-                ViewBag.Error = "Location is required.";
+                ViewBag.Error = validationError;
                 ViewBag.NameInput = name;
                 ViewBag.DescriptionInput = description;
                 ViewBag.LocationInput = location;
@@ -75,9 +65,9 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
             var report = new Dictionary<string, object>
             {
-                ["name"] = name.Trim(),
+                ["name"] = name!.Trim(),
                 ["description"] = description?.Trim() ?? "No additional description provided.",
-                ["location"] = location.Trim(),
+                ["location"] = location!.Trim(),
                 ["date"] = string.IsNullOrWhiteSpace(date) ? DateTime.Now.ToString("yyyy-MM-dd") : date.Trim(),
                 ["status"] = string.IsNullOrWhiteSpace(status) ? "Found" : status.Trim()
             };
@@ -113,9 +103,10 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(location))
+            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.LostFound(name, location, date, status);
+            if (validationError != null)
             {
-                ViewBag.Error = "Item name and Location are required.";
+                ViewBag.Error = validationError;
                 ViewBag.Report = new Dictionary<string, object>
                 {
                     ["id"] = id,
@@ -130,9 +121,9 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
             var updated = new Dictionary<string, object>
             {
-                ["name"] = name.Trim(),
+                ["name"] = name!.Trim(),
                 ["description"] = description?.Trim() ?? "",
-                ["location"] = location.Trim(),
+                ["location"] = location!.Trim(),
                 ["date"] = string.IsNullOrWhiteSpace(date) ? DateTime.Now.ToString("yyyy-MM-dd") : date.Trim(),
                 ["status"] = string.IsNullOrWhiteSpace(status) ? "Found" : status.Trim()
             };

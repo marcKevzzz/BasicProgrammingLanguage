@@ -52,21 +52,10 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(string? name, string? studentNumber, string? course, string? section, string? date, string? status)
         {
-            if (string.IsNullOrWhiteSpace(name))
+            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Attendance(name, studentNumber, date, status);
+            if (validationError != null)
             {
-                ViewBag.Error = "Student name is required.";
-                ViewBag.NameInput = name;
-                ViewBag.StudentNumberInput = studentNumber;
-                ViewBag.CourseInput = course;
-                ViewBag.SectionInput = section;
-                ViewBag.DateInput = date;
-                ViewBag.StatusInput = status;
-                return View();
-            }
-
-            if (string.IsNullOrWhiteSpace(studentNumber))
-            {
-                ViewBag.Error = "Student number is required.";
+                ViewBag.Error = validationError;
                 ViewBag.NameInput = name;
                 ViewBag.StudentNumberInput = studentNumber;
                 ViewBag.CourseInput = course;
@@ -78,8 +67,8 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
             var record = new Dictionary<string, object>
             {
-                ["name"] = name.Trim(),
-                ["studentNumber"] = studentNumber.Trim(),
+                ["name"] = name!.Trim(),
+                ["studentNumber"] = studentNumber!.Trim(),
                 ["course"] = string.IsNullOrWhiteSpace(course) ? "BS Computer Science" : course.Trim(),
                 ["section"] = string.IsNullOrWhiteSpace(section) ? "CS-1A" : section.Trim(),
                 ["date"] = string.IsNullOrWhiteSpace(date) ? DateTime.Now.ToString("yyyy-MM-dd") : date.Trim(),
@@ -117,9 +106,10 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(studentNumber))
+            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Attendance(name, studentNumber, date, status);
+            if (validationError != null)
             {
-                ViewBag.Error = "Student name and student number cannot be empty.";
+                ViewBag.Error = validationError;
                 ViewBag.Record = new Dictionary<string, object>
                 {
                     ["id"] = id,
@@ -135,8 +125,8 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
             var updated = new Dictionary<string, object>
             {
-                ["name"] = name.Trim(),
-                ["studentNumber"] = studentNumber.Trim(),
+                ["name"] = name!.Trim(),
+                ["studentNumber"] = studentNumber!.Trim(),
                 ["course"] = string.IsNullOrWhiteSpace(course) ? "BS Computer Science" : course.Trim(),
                 ["section"] = string.IsNullOrWhiteSpace(section) ? "CS-1A" : section.Trim(),
                 ["date"] = string.IsNullOrWhiteSpace(date) ? DateTime.Now.ToString("yyyy-MM-dd") : date.Trim(),
