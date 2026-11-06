@@ -10,3 +10,6 @@
 *.pubxml.user
 
 **/Properties/PublishProfiles/
+
+# Publish settings contain hosting credentials.
+*.publishSettings

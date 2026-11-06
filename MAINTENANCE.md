@@ -36,3 +36,7 @@ dotnet run --project .\tests\BirthdayCountdown
 Open http://localhost:5212 after starting the application. Stop the app before rebuilding if Windows reports locked output files. Checks can also run with `-p:OutputPath=bin/Validation/` to keep their output separate.
 
 Storage remains in memory: CRUD data resets when the app restarts, and exercise state expires with the session. These changes do not add a database or deployment.
+
+## Hosting context
+
+See AGENTS.md for the current MonsterASP target and the local publish settings location. Publish settings contain credentials, are excluded from Git, and must be supplied separately on another computer.
