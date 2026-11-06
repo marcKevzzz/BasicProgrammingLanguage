@@ -1,6 +1,7 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_ScholarshipQualificationModel
 @{
     ViewData["Title"] = "Scholarship Qualification";
-    var criteria = ViewBag.Criteria as List<Dictionary<string, object>>;
+    var criteria = Model.Criteria as List<DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_ScholarshipCriterion>;
 }
 
 <!-- Header -->
@@ -23,41 +24,41 @@
 
                 <div class="mb-3">
                     <label for="averageGrade" class="form-apple-label">General Weighted Average (GWA) <span class="text-danger">*</span></label>
-                    <input type="number" 
-                           id="averageGrade" 
-                           name="averageGrade" 
-                           value="@ViewBag.AverageGrade" 
-                           min="0" 
-                           max="100" 
-                           step="0.1" 
-                           class="form-apple-input" 
-                           placeholder="e.g. 92.5" 
+                    <input type="number"
+                           id="averageGrade"
+                           name="averageGrade"
+                           value="@Model.AverageGrade"
+                           min="0"
+                           max="100"
+                           step="0.1"
+                           class="form-apple-input"
+                           placeholder="e.g. 92.5"
                            required />
                 </div>
 
                 <div class="mb-3">
                     <label for="householdIncome" class="form-apple-label">Monthly Household Income (₱) <span class="text-danger">*</span></label>
-                    <input type="number" 
-                           id="householdIncome" 
-                           name="householdIncome" 
-                           value="@ViewBag.HouseholdIncome" 
-                           min="0" 
-                           max="1000000" 
-                           step="500" 
-                           class="form-apple-input" 
-                           placeholder="e.g. 20000" 
+                    <input type="number"
+                           id="householdIncome"
+                           name="householdIncome"
+                           value="@Model.HouseholdIncome"
+                           min="0"
+                           max="1000000"
+                           step="500"
+                           class="form-apple-input"
+                           placeholder="e.g. 20000"
                            required />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-apple-label">Academic Standing Record</label>
                     <div class="form-check form-switch p-2 ps-5 rounded-3 bg-light border">
-                        <input class="form-check-input ms-n5" 
-                               type="checkbox" 
-                               id="hasFailingGrades" 
-                               name="hasFailingGrades" 
-                               value="true" 
-                               @(ViewBag.HasFailingGrades == true ? "checked" : "") />
+                        <input class="form-check-input ms-n5"
+                               type="checkbox"
+                               id="hasFailingGrades"
+                               name="hasFailingGrades"
+                               value="true"
+                               @(Model.HasFailingGrades == true ? "checked" : "") />
                         <label class="form-check-label fw-medium text-dark small" for="hasFailingGrades">
                             Student has at least one failing grade (5.0 or &lt; 75)
                         </label>
@@ -84,16 +85,16 @@
                     <h2 class="h5 fw-bold mb-0">Eligibility Determination</h2>
                 </div>
 
-                @if (ViewBag.Error != null)
+                @if (Model.Error != null)
                 {
                     <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
                         <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                        @ViewBag.Error
+                        @Model.Error
                     </div>
                 }
-                else if (ViewBag.Success == true)
+                else if (Model.Success == true)
                 {
-                    bool isQualified = ViewBag.IsQualified == true;
+                    bool isQualified = Model.IsQualified == true;
 
                     <div class="output-hero-panel">
                         <div class="d-flex align-items-center justify-content-between mb-3">
@@ -105,7 +106,7 @@
                         </div>
 
                         <p class="fw-semibold @(isQualified ? "text-success" : "text-danger") fs-5 mb-3">
-                            @ViewBag.Explanation
+                            @Model.Explanation
                         </p>
 
                         @if (criteria != null)
@@ -113,14 +114,14 @@
                             <div class="list-group list-group-flush rounded-3 border">
                                 @foreach (var c in criteria)
                                 {
-                                    bool passed = Convert.ToBoolean(c["passed"]);
+                                    bool passed = Convert.ToBoolean(c.Passed);
                                     <div class="list-group-item bg-transparent d-flex align-items-center justify-content-between py-2">
                                         <div class="d-flex align-items-center gap-2">
                                             <i class="bi @(passed ? "bi-check2-circle text-success" : "bi-x-octagon text-danger") fs-5"></i>
-                                            <span class="small fw-medium">@c["name"]</span>
+                                            <span class="small fw-medium">@c.Name</span>
                                         </div>
                                         <span class="badge @(passed ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger") rounded-pill px-2 py-1 small">
-                                            @c["detail"]
+                                            @c.Detail
                                         </span>
                                     </div>
                                 }
@@ -218,13 +219,13 @@ public IActionResult ScholarshipQualification(double? averageGrade, double? hous
 {
     if (!averageGrade.HasValue || averageGrade.Value &lt; 0 || averageGrade.Value &gt; 100)
     {
-        ViewBag.Error = "Please enter an average grade between 0 and 100.";
+        Model.Error = "Please enter an average grade between 0 and 100.";
         return View();
     }
 
     if (!householdIncome.HasValue || householdIncome.Value &lt; 0)
     {
-        ViewBag.Error = "Please enter a valid monthly household income.";
+        Model.Error = "Please enter a valid monthly household income.";
         return View();
     }
 
@@ -266,13 +267,13 @@ public IActionResult ScholarshipQualification(double? averageGrade, double? hous
         explanation = "Application was not qualified due to: " + string.Join("; ", failedReasons) + ".";
     }
 
-    ViewBag.AverageGrade = gpa;
-    ViewBag.HouseholdIncome = income;
-    ViewBag.HasFailingGrades = hasFailingGrades;
-    ViewBag.IsQualified = isQualified;
-    ViewBag.Explanation = explanation;
-    ViewBag.Criteria = criteria;
-    ViewBag.Success = true;
+    Model.AverageGrade = gpa;
+    Model.HouseholdIncome = income;
+    Model.HasFailingGrades = hasFailingGrades;
+    Model.IsQualified = isQualified;
+    Model.Explanation = explanation;
+    Model.Criteria = criteria;
+    Model.Success = true;
 
     return View();
 }</code></pre>

@@ -1,17 +1,18 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_SavingsChallengeModel
 @{ ViewData["Title"] = "Star Patterns"; }
 <h1 class="hero-title">Star Patterns</h1><p class="hero-subtitle mb-4">Choose a pattern and its base size.</p>
 <div class="row g-4 mb-5"><div class="col-12 col-lg-6"><div class="apple-card h-100"><h2 class="h5">Pattern settings</h2><form method="post">@Html.AntiForgeryToken()
-<label for="size" class="form-apple-label">Base size (1–20)</label><input class="form-apple-input mb-3" type="number" id="size" name="size" min="1" max="20" value="@(ViewBag.Size ?? 5)" required />
-<label for="pattern" class="form-apple-label">Pattern</label><select class="form-apple-select mb-3" id="pattern" name="pattern">@foreach (var option in new[] { ("left", "Left triangle"), ("inverted", "Inverted triangle"), ("right", "Right triangle"), ("pyramid", "Pyramid"), ("diamond", "Diamond") }) { <option value="@option.Item1" selected="@(ViewBag.Pattern == option.Item1)">@option.Item2</option> }</select><button class="btn-apple-primary" type="submit">Generate</button></form></div></div>
-<div class="col-12 col-lg-6"><div class="apple-card h-100"><h2 class="h5">Result</h2>@if (ViewBag.Error != null) { <div class="alert alert-danger" role="alert">@ViewBag.Error</div> } else if (ViewBag.Result != null) { <pre class="output-hero-panel" role="status">@ViewBag.Result</pre> } else { <p class="text-secondary">Choose a pattern and select Generate.</p> }</div></div></div>
+<label for="size" class="form-apple-label">Base size (1–20)</label><input class="form-apple-input mb-3" type="number" id="size" name="size" min="1" max="20" value="@(Model.Size ?? 5)" required />
+<label for="pattern" class="form-apple-label">Pattern</label><select class="form-apple-select mb-3" id="pattern" name="pattern">@foreach (var option in new[] { ("left", "Left triangle"), ("inverted", "Inverted triangle"), ("right", "Right triangle"), ("pyramid", "Pyramid"), ("diamond", "Diamond") }) { <option value="@option.Item1" selected="@(Model.Pattern == option.Item1)">@option.Item2</option> }</select><button class="btn-apple-primary" type="submit">Generate</button></form></div></div>
+<div class="col-12 col-lg-6"><div class="apple-card h-100"><h2 class="h5">Result</h2>@if (Model.Error != null) { <div class="alert alert-danger" role="alert">@Model.Error</div> } else if (Model.Result != null) { <pre class="output-hero-panel" role="status">@Model.Result</pre> } else { <p class="text-secondary">Choose a pattern and select Generate.</p> }</div></div></div>
 <details class="lesson-details"><summary>How it works</summary><div class="lesson-content"><p>A for loop builds each row. Spaces align the right triangle and pyramid; a second loop completes the diamond.</p></div></details>
 
 <details class="lesson-details"><summary>C# code</summary><div class="lesson-content"><div class="macos-code-box"><div class="macos-code-header"><span class="code-title">Star Patterns</span><button type="button" class="btn-copy-code" data-code-target="starCode">Copy code</button></div><pre class="macos-code-body" id="starCode"><code>[HttpPost, ValidateAntiForgeryToken]
         public IActionResult SavingsChallenge(int? size, string? pattern)
         {
-            ViewBag.Size = size; ViewBag.Pattern = pattern;
+            Model.Size = size; Model.Pattern = pattern;
             if (!ModelState.IsValid || size is null or &lt; 1 or &gt; 20 || pattern is not ("left" or "inverted" or "right" or "pyramid" or "diamond"))
-            { ViewBag.Error = "Choose a pattern and a base from 1 to 20."; return View(); }
+            { Model.Error = "Choose a pattern and a base from 1 to 20."; return View(); }
             var lines = new List&lt;string&gt;();
             for (int row = 1; row &lt;= size; row++)
             {
@@ -21,6 +22,6 @@
             }
             if (pattern == "diamond") for (int row = size.Value - 1; row &gt;= 1; row--)
                 lines.Add(new string(' ', size.Value - row) + new string('*', 2 * row - 1));
-            ViewBag.Result = string.Join("\n", lines);
+            Model.Result = string.Join("\n", lines);
             return View();
         }</code></pre></div></div></details>

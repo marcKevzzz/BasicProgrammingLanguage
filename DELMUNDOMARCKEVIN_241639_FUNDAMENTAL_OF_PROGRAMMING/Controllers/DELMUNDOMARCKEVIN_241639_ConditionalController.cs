@@ -1,3 +1,4 @@
+using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
@@ -8,25 +9,27 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
         [HttpGet]
         public IActionResult OutfitRecommendation()
         {
-            ViewBag.Temperature = 24.0;
-            ViewBag.WeatherCondition = "Sunny";
-            return View();
+            var model = new DELMUNDOMARCKEVIN_241639_OutfitRecommendationModel();
+            model.Temperature = 24.0;
+            model.WeatherCondition = "Sunny";
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult OutfitRecommendation(double? temperature, string? weatherCondition)
         {
+            var model = new DELMUNDOMARCKEVIN_241639_OutfitRecommendationModel();
             if (!temperature.HasValue)
             {
-                ViewBag.Error = "Please enter the ambient temperature.";
-                return View();
+                model.Error = "Please enter the ambient temperature.";
+                return View(model);
             }
 
             if (string.IsNullOrWhiteSpace(weatherCondition))
             {
-                ViewBag.Error = "Please select the current weather condition.";
-                return View();
+                model.Error = "Please select the current weather condition.";
+                return View(model);
             }
 
             double temp = temperature.Value;
@@ -95,42 +98,44 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
                 break;
             }
 
-            ViewBag.Temperature = temp;
-            ViewBag.WeatherCondition = weather;
-            ViewBag.Category = category;
-            ViewBag.Top = top;
-            ViewBag.Bottom = bottom;
-            ViewBag.Footwear = footwear;
-            ViewBag.Accessories = accessories;
-            ViewBag.Success = true;
+            model.Temperature = temp;
+            model.WeatherCondition = weather;
+            model.Category = category;
+            model.Top = top;
+            model.Bottom = bottom;
+            model.Footwear = footwear;
+            model.Accessories = accessories;
+            model.Success = true;
 
-            return View();
+            return View(model);
         }
 
         // 2. Scholarship Qualification
         [HttpGet]
         public IActionResult ScholarshipQualification()
         {
-            ViewBag.AverageGrade = 92.5;
-            ViewBag.HouseholdIncome = 22000.0;
-            ViewBag.HasFailingGrades = false;
-            return View();
+            var model = new DELMUNDOMARCKEVIN_241639_ScholarshipQualificationModel();
+            model.AverageGrade = 92.5;
+            model.HouseholdIncome = 22000.0;
+            model.HasFailingGrades = false;
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ScholarshipQualification(double? averageGrade, double? householdIncome, bool hasFailingGrades)
         {
+            var model = new DELMUNDOMARCKEVIN_241639_ScholarshipQualificationModel();
             if (!averageGrade.HasValue || averageGrade.Value < 0 || averageGrade.Value > 100)
             {
-                ViewBag.Error = "Please enter an average grade between 0 and 100.";
-                return View();
+                model.Error = "Please enter an average grade between 0 and 100.";
+                return View(model);
             }
 
             if (!householdIncome.HasValue || householdIncome.Value < 0)
             {
-                ViewBag.Error = "Please enter a valid monthly household income.";
-                return View();
+                model.Error = "Please enter a valid monthly household income.";
+                return View(model);
             }
 
             double gpa = averageGrade.Value;
@@ -149,11 +154,11 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
                 }
             }
 
-            var criteria = new List<Dictionary<string, object>>
+            var criteria = new List<DELMUNDOMARCKEVIN_241639_ScholarshipCriterion>
             {
-                new() { ["name"] = "Academic Grade Requirement (≥ 90.0)", ["passed"] = gpaPassed, ["detail"] = $"Your Grade: {gpa:F1}" },
-                new() { ["name"] = "Monthly Household Income Ceiling (≤ ₱25,000)", ["passed"] = incomePassed, ["detail"] = $"Your Income: ₱{income:N2}" },
-                new() { ["name"] = "Clean Academic Record (No Failing Marks)", ["passed"] = noFailsPassed, ["detail"] = hasFailingGrades ? "Has failing marks reported" : "No failing marks" }
+                new("Academic Grade Requirement (≥ 90.0)", gpaPassed, $"Your Grade: {gpa:F1}"),
+                new("Monthly Household Income Ceiling (≤ ₱25,000)", incomePassed, $"Your Income: ₱{income:N2}"),
+                new("Clean Academic Record (No Failing Marks)", noFailsPassed, hasFailingGrades ? "Has failing marks reported" : "No failing marks")
             };
 
             string explanation;
@@ -171,15 +176,15 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
                 explanation = "Application was not qualified due to: " + string.Join("; ", failedReasons) + ".";
             }
 
-            ViewBag.AverageGrade = gpa;
-            ViewBag.HouseholdIncome = income;
-            ViewBag.HasFailingGrades = hasFailingGrades;
-            ViewBag.IsQualified = isQualified;
-            ViewBag.Explanation = explanation;
-            ViewBag.Criteria = criteria;
-            ViewBag.Success = true;
+            model.AverageGrade = gpa;
+            model.HouseholdIncome = income;
+            model.HasFailingGrades = hasFailingGrades;
+            model.IsQualified = isQualified;
+            model.Explanation = explanation;
+            model.Criteria = criteria;
+            model.Success = true;
 
-            return View();
+            return View(model);
         }
 
         [HttpGet]
@@ -188,49 +193,51 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
         [HttpGet]
         public IActionResult Payroll()
         {
-            ViewBag.Salary = "30000";
-            return View();
+            return View(new DELMUNDOMARCKEVIN_241639_PayrollModel { Salary = "30000" });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Payroll(string? salary)
         {
-            ViewBag.Salary = salary;
+            var model = new DELMUNDOMARCKEVIN_241639_PayrollModel { Salary = salary };
             if (!decimal.TryParse(salary, System.Globalization.NumberStyles.AllowDecimalPoint |
                 System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowLeadingWhite |
                 System.Globalization.NumberStyles.AllowTrailingWhite, System.Globalization.CultureInfo.InvariantCulture,
                 out decimal basicSalary) || basicSalary <= 0 || basicSalary != Services.PayrollCalculator.Money(basicSalary))
             {
-                ViewBag.Error = "Enter a positive monthly salary with up to two decimal places, such as 30000.00.";
-                return View();
+                model.Error = "Enter a positive monthly salary with up to two decimal places, such as 30000.00.";
+                return View(model);
             }
-            return View(Services.PayrollCalculator.Calculate(basicSalary));
+            model.Result = Services.PayrollCalculator.Calculate(basicSalary);
+            return View(model);
         }
 
         // 4. BMI Category Checker
         [HttpGet]
         public IActionResult BmiChecker()
         {
-            ViewBag.Weight = 68.0;
-            ViewBag.Height = 172.0;
-            return View();
+            var model = new DELMUNDOMARCKEVIN_241639_BmiCheckerModel();
+            model.Weight = 68.0;
+            model.Height = 172.0;
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult BmiChecker(double? weight, double? height)
         {
+            var model = new DELMUNDOMARCKEVIN_241639_BmiCheckerModel();
             if (!weight.HasValue || weight.Value <= 10 || weight.Value > 300)
             {
-                ViewBag.Error = "Please enter a valid weight in kilograms (10 - 300 kg).";
-                return View();
+                model.Error = "Please enter a valid weight in kilograms (10 - 300 kg).";
+                return View(model);
             }
 
             if (!height.HasValue || height.Value <= 50 || height.Value > 260)
             {
-                ViewBag.Error = "Please enter a valid height in centimeters (50 - 260 cm).";
-                return View();
+                model.Error = "Please enter a valid height in centimeters (50 - 260 cm).";
+                return View(model);
             }
 
             double w = weight.Value;
@@ -272,32 +279,34 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
                 }
             }
 
-            ViewBag.Weight = w;
-            ViewBag.Height = height.Value;
-            ViewBag.Bmi = bmi;
-            ViewBag.Category = category;
-            ViewBag.BadgeClass = badgeClass;
-            ViewBag.Advice = advice;
-            ViewBag.Success = true;
+            model.Weight = w;
+            model.Height = height.Value;
+            model.Bmi = bmi;
+            model.Category = category;
+            model.BadgeClass = badgeClass;
+            model.Advice = advice;
+            model.Success = true;
 
-            return View();
+            return View(model);
         }
 
         // 5. Password Strength Checker
         [HttpGet]
         public IActionResult PasswordStrength()
         {
-            return View();
+            var model = new DELMUNDOMARCKEVIN_241639_PasswordStrengthModel();
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult PasswordStrength(string? password)
         {
+            var model = new DELMUNDOMARCKEVIN_241639_PasswordStrengthModel();
             if (string.IsNullOrEmpty(password))
             {
-                ViewBag.Error = "Please enter a password to evaluate.";
-                return View();
+                model.Error = "Please enter a password to evaluate.";
+                return View(model);
             }
 
             int length = password.Length;
@@ -352,19 +361,19 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
             }
 
             // Note: Never log or store the password. Pass only length and metrics to view.
-            ViewBag.Rating = rating;
-            ViewBag.BadgeClass = badgeClass;
-            ViewBag.Score = score;
-            ViewBag.Length = length;
-            ViewBag.HasUpper = hasUpper;
-            ViewBag.HasLower = hasLower;
-            ViewBag.HasDigit = hasDigit;
-            ViewBag.HasSpecial = hasSpecial;
-            ViewBag.ProgressPercent = progressPercent;
-            ViewBag.Suggestions = suggestions;
-            ViewBag.Success = true;
+            model.Rating = rating;
+            model.BadgeClass = badgeClass;
+            model.Score = score;
+            model.Length = length;
+            model.HasUpper = hasUpper;
+            model.HasLower = hasLower;
+            model.HasDigit = hasDigit;
+            model.HasSpecial = hasSpecial;
+            model.ProgressPercent = progressPercent;
+            model.Suggestions = suggestions;
+            model.Success = true;
 
-            return View();
+            return View(model);
         }
     }
 }

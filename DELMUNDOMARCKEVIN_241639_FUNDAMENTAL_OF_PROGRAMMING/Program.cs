@@ -1,3 +1,4 @@
+using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models;
 using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +18,11 @@ builder.Services.AddSession(options =>
 });
 
 // Singleton in-memory CRUD store
-builder.Services.AddSingleton<InMemoryCrudStore>();
+builder.Services.AddSingleton(new TypedCrudStore<DELMUNDOMARCKEVIN_241639_WishlistItem>(CrudSeedData.WishlistItems));
+builder.Services.AddSingleton(new TypedCrudStore<DELMUNDOMARCKEVIN_241639_Game>(CrudSeedData.Games));
+builder.Services.AddSingleton(new TypedCrudStore<DELMUNDOMARCKEVIN_241639_AttendanceRecord>(CrudSeedData.AttendanceRecords));
+builder.Services.AddSingleton(new TypedCrudStore<DELMUNDOMARCKEVIN_241639_LostFoundItem>(CrudSeedData.LostFoundItems));
+builder.Services.AddSingleton<LibraryStore>();
 builder.Services.AddSingleton<ProgramCatalog>();
 
 var app = builder.Build();

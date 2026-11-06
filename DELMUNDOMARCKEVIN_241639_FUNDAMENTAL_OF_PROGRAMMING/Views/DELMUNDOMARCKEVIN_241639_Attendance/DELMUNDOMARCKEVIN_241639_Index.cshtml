@@ -1,6 +1,7 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_AttendanceIndexModel
 @{
     ViewData["Title"] = "Student Attendance Manager";
-    var records = ViewBag.AttendanceList as List<Dictionary<string, object>> ?? new();
+    var records = Model.Items;
 }
 
 <!-- Header -->
@@ -21,18 +22,18 @@
     <form method="get" asp-action="Index" class="row g-2 align-items-center">
         <div class="col-12 col-md-6 position-relative">
             <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
-            <input type="text" 
-                   name="search" aria-label="Search records" 
-                   value="@ViewBag.Search" 
-                   class="form-apple-input ps-5" 
+            <input type="text"
+                   name="search" aria-label="Search records"
+                   value="@Model.Search"
+                   class="form-apple-input ps-5"
                    placeholder="Search by student name, number, course, section..." />
         </div>
         <div class="col-6 col-md-3">
             <select name="status" class="form-apple-select">
                 <option value="All">All Attendance Statuses</option>
-                <option value="Present" selected="@(ViewBag.StatusFilter == "Present")">Present</option>
-                <option value="Late" selected="@(ViewBag.StatusFilter == "Late")">Late</option>
-                <option value="Absent" selected="@(ViewBag.StatusFilter == "Absent")">Absent</option>
+                <option value="Present" selected="@(Model.Filter == "Present")">Present</option>
+                <option value="Late" selected="@(Model.Filter == "Late")">Late</option>
+                <option value="Absent" selected="@(Model.Filter == "Absent")">Absent</option>
             </select>
         </div>
         <div class="col-4 col-md-2">
@@ -81,21 +82,21 @@
                 {
                     foreach (var s in records)
                     {
-                        int id = Convert.ToInt32(s["id"]);
-                        string st = s["status"]?.ToString() ?? "Present";
+                        int id = s.Id;
+                        string st = s.Status?.ToString() ?? "Present";
                         var stBadge = st == "Present" ? "bg-success text-white" :
                                       st == "Late" ? "bg-warning text-dark" : "bg-danger text-white";
 
                         <tr>
                             <td class="font-monospace text-secondary">#@id</td>
-                            <td class="fw-bold text-primary">@s["name"]</td>
-                            <td class="font-monospace text-secondary">@s["studentNumber"]</td>
+                            <td class="fw-bold text-primary">@s.Name</td>
+                            <td class="font-monospace text-secondary">@s.StudentNumber</td>
                             <td>
                                 <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">
-                                    @s["course"] &bull; @s["section"]
+                                    @s.Course &bull; @s.Section
                                 </span>
                             </td>
-                            <td class="font-monospace text-secondary small">@s["date"]</td>
+                            <td class="font-monospace text-secondary small">@s.Date</td>
                             <td>
                                 <span class="badge @stBadge rounded-pill px-3 py-1 small fw-semibold">
                                     @st
@@ -106,7 +107,7 @@
                                     <a asp-action="Edit" asp-route-id="@id" class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Edit attendance" aria-label="Edit attendance">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form method="post" asp-action="Delete" asp-route-id="@id" class="d-inline" onsubmit="return confirm('Delete attendance record for \'@s["name"]\'?');">
+                                    <form method="post" asp-action="Delete" asp-route-id="@id" class="d-inline" onsubmit="return confirm('Delete this record?');">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Delete record" aria-label="Delete record">
                                             <i class="bi bi-trash"></i>
@@ -162,26 +163,8 @@
             </div>
             <pre class="macos-code-body" id="attendCode"><code>public IActionResult Index(string? search, string? status)
 {
-    var records = _store.GetAll("attendance");
-
-    if (!string.IsNullOrWhiteSpace(search))
-    {
-        string query = search.Trim().ToLowerInvariant();
-        records = records.Where(x =&gt;
-            (x.ContainsKey("name") &amp;&amp; x["name"].ToString()!.ToLowerInvariant().Contains(query)) ||
-            (x.ContainsKey("studentNumber") &amp;&amp; x["studentNumber"].ToString()!.ToLowerInvariant().Contains(query))
-        ).ToList();
-    }
-
-    if (!string.IsNullOrWhiteSpace(status) &amp;&amp; status != "All")
-    {
-        records = records.Where(x =&gt;
-            x.ContainsKey("status") &amp;&amp; x["status"].ToString()!.Equals(status, StringComparison.OrdinalIgnoreCase)
-        ).ToList();
-    }
-
-    ViewBag.AttendanceList = records;
-    return View();
+    // Filter typed records and pass a DELMUNDOMARCKEVIN_241639_AttendanceIndexModel to the view.
+    // See the controller for the complete implementation.
 }</code></pre>
         </div>
     </div>

@@ -1,3 +1,4 @@
+using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Services;
@@ -12,10 +13,7 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
         public IActionResult Index()
         {
-            ViewBag.Categories = _catalog.Categories;
-            ViewBag.Programs = _catalog.Programs;
-
-            return View();
+            return View(new DELMUNDOMARCKEVIN_241639_HomeIndexModel(_catalog.Categories, _catalog.Programs));
         }
 
         public IActionResult Privacy()

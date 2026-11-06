@@ -1,6 +1,7 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_ExpenseTrackerModel
 @{
     ViewData["Title"] = "Daily Expense Tracker";
-    var expenses = ViewBag.Expenses as List<Dictionary<string, object>> ?? new();
+    var expenses = Model.Expenses as List<DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_ExpenseEntry> ?? new();
 }
 
 <!-- Header -->
@@ -24,24 +25,24 @@
 
                 <div class="mb-3">
                     <label for="name" class="form-apple-label">Expense Description <span class="text-danger">*</span></label>
-                    <input type="text" 
-                           id="name" 
-                           name="name" 
-                           class="form-apple-input" 
-                           placeholder="e.g. Lunch with team, Fuel, Groceries" 
+                    <input type="text"
+                           id="name"
+                           name="name"
+                           class="form-apple-input"
+                           placeholder="e.g. Lunch with team, Fuel, Groceries"
                            required />
                 </div>
 
                 <div class="mb-3">
                     <label for="amount" class="form-apple-label">Amount in Philippine Pesos (₱) <span class="text-danger">*</span></label>
-                    <input type="number" 
-                           id="amount" 
-                           name="amount" 
-                           min="0.5" 
-                           max="1000000" 
-                           step="0.5" 
-                           class="form-apple-input" 
-                           placeholder="e.g. 250.00" 
+                    <input type="number"
+                           id="amount"
+                           name="amount"
+                           min="0.5"
+                           max="1000000"
+                           step="0.5"
+                           class="form-apple-input"
+                           placeholder="e.g. 250.00"
                            required />
                 </div>
 
@@ -73,23 +74,23 @@
                         <h2 class="h5 fw-bold mb-0">Expense Ledger &amp; Totals</h2>
                     </div>
                     <span class="badge bg-light text-secondary border rounded-pill px-3 py-1">
-                        @ViewBag.ExpenseCount Items
+                        @Model.ExpenseCount @(Model.ExpenseCount == 1 ? "Item" : "Items")
                     </span>
                 </div>
 
-                @if (ViewBag.Error != null)
+                @if (Model.Error != null)
                 {
                     <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
                         <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                        @ViewBag.Error
+                        @Model.Error
                     </div>
                 }
 
-                @if (ViewBag.Message != null)
+                @if (Model.Message != null)
                 {
                     <div class="alert alert-info rounded-4 border-0 shadow-sm py-2 mb-3 small" role="alert">
                         <i class="bi bi-check-circle-fill text-primary me-1"></i>
-                        @ViewBag.Message
+                        @Model.Message
                     </div>
                 }
 
@@ -99,13 +100,13 @@
                         <div class="col-6">
                             <div class="text-secondary small fw-bold text-uppercase">Total Expenditures</div>
                             <div class="output-value-large text-danger">
-                                ₱@string.Format("{0:N2}", ViewBag.TotalExpenses)
+                                ₱@string.Format("{0:N2}", Model.TotalExpenses)
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="text-secondary small fw-bold text-uppercase">Average / Entry</div>
                             <div class="output-value-large text-primary">
-                                ₱@string.Format("{0:N2}", ViewBag.AverageExpense)
+                                ₱@string.Format("{0:N2}", Model.AverageExpense)
                             </div>
                         </div>
                     </div>
@@ -138,9 +139,9 @@
                                 {
                                     <tr>
                                         <td class="text-secondary">@idx</td>
-                                        <td class="fw-semibold">@exp["name"]</td>
-                                        <td class="text-secondary">@exp["date"]</td>
-                                        <td class="text-end fw-bold text-dark">₱@string.Format("{0:N2}", exp["amount"])</td>
+                                        <td class="fw-semibold">@exp.Name</td>
+                                        <td class="text-secondary">@exp.Date</td>
+                                        <td class="text-end fw-bold text-dark">₱@string.Format("{0:N2}", exp.Amount)</td>
                                     </tr>
                                     idx++;
                                 }
@@ -177,7 +178,7 @@
         <div class="col-12 col-md-6">
             <h6 class="fw-bold">In-Memory Session Persistence</h6>
             <p class="text-secondary small">
-                Every newly added expense is serialized into the user's encrypted HTTP session state. The records remain available as you navigate through other exercises, without requiring an external database.
+                Every newly added expense is serialized into the user's server-side session. The records remain available as you navigate through other exercises, without requiring an external database.
             </p>
         </div>
     </div>
@@ -215,10 +216,10 @@
 
     double average = count &gt; 0 ? total / count : 0.0;
 
-    ViewBag.Expenses = expenses;
-    ViewBag.TotalExpenses = total;
-    ViewBag.AverageExpense = average;
-    ViewBag.ExpenseCount = count;
+    Model.Expenses = expenses;
+    Model.TotalExpenses = total;
+    Model.AverageExpense = average;
+    Model.ExpenseCount = count;
 }</code></pre>
         </div>
     </div>

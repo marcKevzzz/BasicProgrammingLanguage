@@ -1,158 +1,49 @@
 using Microsoft.AspNetCore.Mvc;
+using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models;
 using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Services;
-
-namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
+namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers;
+public class DELMUNDOMARCKEVIN_241639_AttendanceController(TypedCrudStore<DELMUNDOMARCKEVIN_241639_AttendanceRecord> store) : Controller
 {
-    public class DELMUNDOMARCKEVIN_241639_AttendanceController : Controller
+    public IActionResult Index(string? search, string? status)
     {
-        private readonly InMemoryCrudStore _store;
-
-        public DELMUNDOMARCKEVIN_241639_AttendanceController(InMemoryCrudStore store)
-        {
-            _store = store;
-        }
-
-        // GET: /Attendance
-        public IActionResult Index(string? search, string? status)
-        {
-            var records = _store.GetAll("attendance");
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                string query = search.Trim().ToLowerInvariant();
-                records = records.Where(x =>
-                    (x.ContainsKey("name") && x["name"].ToString()!.ToLowerInvariant().Contains(query)) ||
-                    (x.ContainsKey("studentNumber") && x["studentNumber"].ToString()!.ToLowerInvariant().Contains(query)) ||
-                    (x.ContainsKey("course") && x["course"].ToString()!.ToLowerInvariant().Contains(query)) ||
-                    (x.ContainsKey("section") && x["section"].ToString()!.ToLowerInvariant().Contains(query))
-                ).ToList();
-                ViewBag.Search = search;
-            }
-
-            if (!string.IsNullOrWhiteSpace(status) && status != "All")
-            {
-                records = records.Where(x =>
-                    x.ContainsKey("status") && x["status"].ToString()!.Equals(status, StringComparison.OrdinalIgnoreCase)
-                ).ToList();
-                ViewBag.StatusFilter = status;
-            }
-
-            ViewBag.AttendanceList = records;
-            return View();
-        }
-
-        // GET: /DELMUNDOMARCKEVIN_241639_Attendance/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: /DELMUNDOMARCKEVIN_241639_Attendance/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(string? name, string? studentNumber, string? course, string? section, string? date, string? status)
-        {
-            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Attendance(name, studentNumber, date, status);
-            if (validationError != null)
-            {
-                ViewBag.Error = validationError;
-                ViewBag.NameInput = name;
-                ViewBag.StudentNumberInput = studentNumber;
-                ViewBag.CourseInput = course;
-                ViewBag.SectionInput = section;
-                ViewBag.DateInput = date;
-                ViewBag.StatusInput = status;
-                return View();
-            }
-
-            var record = new Dictionary<string, object>
-            {
-                ["name"] = name!.Trim(),
-                ["studentNumber"] = studentNumber!.Trim(),
-                ["course"] = string.IsNullOrWhiteSpace(course) ? "BS Computer Science" : course.Trim(),
-                ["section"] = string.IsNullOrWhiteSpace(section) ? "CS-1A" : section.Trim(),
-                ["date"] = string.IsNullOrWhiteSpace(date) ? DateTime.Now.ToString("yyyy-MM-dd") : date.Trim(),
-                ["status"] = string.IsNullOrWhiteSpace(status) ? "Present" : status.Trim()
-            };
-
-            int newId = _store.Insert("attendance", record);
-            TempData["Success"] = $"Attendance record #{newId} for '{record["name"]}' saved successfully.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET: /DELMUNDOMARCKEVIN_241639_Attendance/Edit/1
-        public IActionResult Edit(int id)
-        {
-            var record = _store.GetById("attendance", id);
-            if (record == null)
-            {
-                TempData["Error"] = $"Attendance record #{id} was not found.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            ViewBag.Record = record;
-            return View();
-        }
-
-        // POST: /DELMUNDOMARCKEVIN_241639_Attendance/Edit/1
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, string? name, string? studentNumber, string? course, string? section, string? date, string? status)
-        {
-            var existing = _store.GetById("attendance", id);
-            if (existing == null)
-            {
-                TempData["Error"] = $"Attendance record #{id} not found.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Attendance(name, studentNumber, date, status);
-            if (validationError != null)
-            {
-                ViewBag.Error = validationError;
-                ViewBag.Record = new Dictionary<string, object>
-                {
-                    ["id"] = id,
-                    ["name"] = name ?? "",
-                    ["studentNumber"] = studentNumber ?? "",
-                    ["course"] = course ?? "",
-                    ["section"] = section ?? "",
-                    ["date"] = date ?? "",
-                    ["status"] = status ?? "Present"
-                };
-                return View();
-            }
-
-            var updated = new Dictionary<string, object>
-            {
-                ["name"] = name!.Trim(),
-                ["studentNumber"] = studentNumber!.Trim(),
-                ["course"] = string.IsNullOrWhiteSpace(course) ? "BS Computer Science" : course.Trim(),
-                ["section"] = string.IsNullOrWhiteSpace(section) ? "CS-1A" : section.Trim(),
-                ["date"] = string.IsNullOrWhiteSpace(date) ? DateTime.Now.ToString("yyyy-MM-dd") : date.Trim(),
-                ["status"] = string.IsNullOrWhiteSpace(status) ? "Present" : status.Trim()
-            };
-
-            _store.Update("attendance", id, updated);
-            TempData["Success"] = $"Attendance record #{id} for '{updated["name"]}' updated.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        // POST: /DELMUNDOMARCKEVIN_241639_Attendance/Delete/1
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Delete(int id)
-        {
-            bool removed = _store.Delete("attendance", id);
-            if (removed)
-            {
-                TempData["Success"] = $"Attendance entry #{id} was removed.";
-            }
-            else
-            {
-                TempData["Error"] = $"Attendance entry #{id} not found.";
-            }
-            return RedirectToAction(nameof(Index));
-        }
+        IEnumerable<DELMUNDOMARCKEVIN_241639_AttendanceRecord> items = store.GetAll();
+        if (!string.IsNullOrWhiteSpace(search))
+        { var query = search.Trim(); items = items.Where(item => item.Name.Contains(query, StringComparison.OrdinalIgnoreCase) || item.StudentNumber.Contains(query, StringComparison.OrdinalIgnoreCase) || item.Course.Contains(query, StringComparison.OrdinalIgnoreCase) || item.Section.Contains(query, StringComparison.OrdinalIgnoreCase)); }
+        if (!string.IsNullOrWhiteSpace(status) && status != "All") items = items.Where(item => item.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
+        return View(new DELMUNDOMARCKEVIN_241639_AttendanceIndexModel(items.ToArray(), search, status));
     }
+    public IActionResult Create() => View(new DELMUNDOMARCKEVIN_241639_AttendanceInput());
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult Create(DELMUNDOMARCKEVIN_241639_AttendanceInput input)
+    {
+        if (!ModelState.IsValid) return View(input);
+        var saved = store.Insert(input.ToRecord());
+        TempData["Success"] = $"Record #{saved.Id} added successfully.";
+        return RedirectToAction(nameof(Index));
+    }
+    public IActionResult Edit(int id)
+    {
+        var item = store.GetById(id);
+        if (item == null) return Missing(id);
+        return View(new DELMUNDOMARCKEVIN_241639_AttendanceEditModel(id, DELMUNDOMARCKEVIN_241639_AttendanceInput.FromRecord(item)));
+    }
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult Edit(int id, DELMUNDOMARCKEVIN_241639_AttendanceInput input)
+    {
+        if (store.GetById(id) == null) return Missing(id);
+        if (!ModelState.IsValid) return View(new DELMUNDOMARCKEVIN_241639_AttendanceEditModel(id, input));
+        if (!store.Update(id, input.ToRecord(id))) return Missing(id);
+        TempData["Success"] = $"Record #{id} updated successfully.";
+        return RedirectToAction(nameof(Index));
+    }
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult Delete(int id)
+    {
+        if (!store.Delete(id)) return Missing(id);
+        TempData["Success"] = $"Record #{id} deleted.";
+        return RedirectToAction(nameof(Index));
+    }
+    private IActionResult Missing(int id)
+    { TempData["Error"] = $"Record #{id} was not found."; return RedirectToAction(nameof(Index)); }
+
 }

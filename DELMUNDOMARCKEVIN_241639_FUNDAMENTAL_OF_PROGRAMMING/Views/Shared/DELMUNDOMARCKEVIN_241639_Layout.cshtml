@@ -4,10 +4,10 @@
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     var toastMessage = TempData["Success"]?.ToString();
     if (Context.Request.Method == "POST")
-        toastMessage ??= ViewBag.Error as string ?? ViewBag.Message as string ?? "Calculation complete.";
+        toastMessage ??= (ViewData.Model as DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_IPageFeedback)?.Error ?? (ViewData.Model as DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_IPageFeedback)?.Message ?? ViewBag.Error as string ?? ViewBag.Message as string ?? "Calculation complete.";
     if (Context.Request.Query["notice"] == "reset") toastMessage = "Form reset.";
-    var activeProgram = Catalog.Programs.FirstOrDefault(program => program["controller"].ToString() == currentController &&
-        (program["action"].ToString() == currentAction || program["categoryId"].ToString() == "crud"));
+    var activeProgram = Catalog.Programs.FirstOrDefault(program => program.Controller.ToString() == currentController &&
+        (program.Action.ToString() == currentAction || program.CategoryId.ToString() == "crud"));
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -51,15 +51,15 @@
                 <a asp-controller="DELMUNDOMARCKEVIN_241639_Home" asp-action="Index" class="sidebar-overview @(currentController == "DELMUNDOMARCKEVIN_241639_Home" ? "active" : "")" aria-current="@(currentController == "DELMUNDOMARCKEVIN_241639_Home" ? "page" : null)"><i class="bi bi-grid" aria-hidden="true"></i> All programs</a>
                 @foreach (var category in Catalog.Categories)
                 {
-                    var categoryId = category["id"].ToString();
-                    var categoryPrograms = Catalog.Programs.Where(program => program["categoryId"].ToString() == categoryId).ToList();
-                    <details class="nav-group @(activeProgram?["categoryId"].ToString() == categoryId ? "category-active" : "")" data-category="@categoryId">
-                        <summary><span><i class="bi @category["icon"]" aria-hidden="true"></i>@category["name"]</span><i class="bi bi-chevron-right" aria-hidden="true"></i></summary>
+                    var categoryId = category.Id.ToString();
+                    var categoryPrograms = Catalog.Programs.Where(program => program.CategoryId.ToString() == categoryId).ToList();
+                    <details class="nav-group @(activeProgram?.CategoryId.ToString() == categoryId ? "category-active" : "")" data-category="@categoryId">
+                        <summary><span><i class="bi @category.Icon" aria-hidden="true"></i>@category.Name</span><i class="bi bi-chevron-right" aria-hidden="true"></i></summary>
                         <ul>
                             @foreach (var program in categoryPrograms)
                             {
                                 var isActive = ReferenceEquals(program, activeProgram);
-                                <li><a asp-controller="@program["controller"]" asp-action="@program["action"]" class="@(isActive ? "active" : "")" aria-current="@(isActive ? "page" : null)">@program["title"]</a></li>
+                                <li><a asp-controller="@program.Controller" asp-action="@program.Action" class="@(isActive ? "active" : "")" aria-current="@(isActive ? "page" : null)">@program.Title</a></li>
                             }
                         </ul>
                     </details>
@@ -73,17 +73,17 @@
                 {
                     <nav class="page-breadcrumb" aria-label="Breadcrumb"><a asp-controller="DELMUNDOMARCKEVIN_241639_Home" asp-action="Index">Programs</a><i class="bi bi-chevron-right" aria-hidden="true"></i>@if (activeProgram != null)
                         {
-                            <a asp-controller="DELMUNDOMARCKEVIN_241639_Home" asp-action="Index" asp-route-category="@activeProgram["categoryId"]">@activeProgram["category"]</a>
+                            <a asp-controller="DELMUNDOMARCKEVIN_241639_Home" asp-action="Index" asp-route-category="@activeProgram.CategoryId">@activeProgram.Category</a>
                             <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                            @if (currentAction != activeProgram["action"].ToString())
+                            @if (currentAction != activeProgram.Action.ToString())
                             {
-                                <a asp-controller="@activeProgram["controller"]" asp-action="@activeProgram["action"]">@activeProgram["title"]</a>
+                                <a asp-controller="@activeProgram.Controller" asp-action="@activeProgram.Action">@activeProgram.Title</a>
                                 <i class="bi bi-chevron-right" aria-hidden="true"></i>
                                 <span aria-current="page">@(currentAction == "Create" ? "Add" : currentAction)</span>
                             }
                             else
                             {
-                                <span aria-current="page">@activeProgram["title"]</span>
+                                <span aria-current="page">@activeProgram.Title</span>
                             }
                         }
                         else
@@ -110,8 +110,8 @@
         <div class="search-results" aria-label="Search results">
             @foreach (var program in Catalog.Programs)
             {
-                <a class="search-result" asp-controller="@program["controller"]" asp-action="@program["action"]" data-search="@program["title"] @program["desc"] @program["category"]">
-                    <i class="bi @program["icon"]" aria-hidden="true"></i><span><strong>@program["title"]</strong><small>@program["category"]</small></span><i class="bi bi-arrow-return-left" aria-hidden="true"></i>
+                <a class="search-result" asp-controller="@program.Controller" asp-action="@program.Action" data-search="@program.Title @program.Desc @program.Category">
+                    <i class="bi @program.Icon" aria-hidden="true"></i><span><strong>@program.Title</strong><small>@program.Category</small></span><i class="bi bi-arrow-return-left" aria-hidden="true"></i>
                 </a>
             }
             <p id="search-empty" hidden>No programs found. Try another word.</p>

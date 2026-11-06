@@ -1,0 +1,4 @@
+using System.ComponentModel.DataAnnotations;
+using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Services;
+namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models;
+public sealed record DELMUNDOMARCKEVIN_241639_AttendanceEditModel(int Id, DELMUNDOMARCKEVIN_241639_AttendanceInput Input);

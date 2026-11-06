@@ -1,166 +1,55 @@
 using Microsoft.AspNetCore.Mvc;
+using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models;
 using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Services;
-
-namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
+namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers;
+public class DELMUNDOMARCKEVIN_241639_WishlistController(TypedCrudStore<DELMUNDOMARCKEVIN_241639_WishlistItem> store) : Controller
 {
-    public class DELMUNDOMARCKEVIN_241639_WishlistController : Controller
+    public IActionResult Index(string? search, string? priority)
     {
-        private readonly InMemoryCrudStore _store;
-
-        public DELMUNDOMARCKEVIN_241639_WishlistController(InMemoryCrudStore store)
-        {
-            _store = store;
-        }
-
-        // GET: /Wishlist
-        public IActionResult Index(string? search, string? priority)
-        {
-            var items = _store.GetAll("wishlist");
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                string query = search.Trim().ToLowerInvariant();
-                items = items.Where(x =>
-                    (x.ContainsKey("name") && x["name"].ToString()!.ToLowerInvariant().Contains(query)) ||
-                    (x.ContainsKey("category") && x["category"].ToString()!.ToLowerInvariant().Contains(query))
-                ).ToList();
-                ViewBag.Search = search;
-            }
-
-            if (!string.IsNullOrWhiteSpace(priority) && priority != "All")
-            {
-                items = items.Where(x =>
-                    x.ContainsKey("priority") && x["priority"].ToString()!.Equals(priority, StringComparison.OrdinalIgnoreCase)
-                ).ToList();
-                ViewBag.PriorityFilter = priority;
-            }
-
-            ViewBag.Wishlist = items;
-            return View();
-        }
-
-        // GET: /DELMUNDOMARCKEVIN_241639_Wishlist/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: /DELMUNDOMARCKEVIN_241639_Wishlist/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(string? name, string? category, double? price, string? priority, bool purchased)
-        {
-            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Wishlist(name, price, priority);
-            if (validationError != null)
-            {
-                ViewBag.Error = validationError;
-                ViewBag.NameInput = name;
-                ViewBag.CategoryInput = category;
-                ViewBag.PriceInput = price;
-                ViewBag.PriorityInput = priority;
-                return View();
-            }
-
-            var item = new Dictionary<string, object>
-            {
-                ["name"] = name!.Trim(),
-                ["category"] = string.IsNullOrWhiteSpace(category) ? "General" : category.Trim(),
-                ["price"] = price!.Value,
-                ["priority"] = string.IsNullOrWhiteSpace(priority) ? "Medium" : priority.Trim(),
-                ["purchased"] = purchased
-            };
-
-            int newId = _store.Insert("wishlist", item);
-            TempData["Success"] = $"Wishlist item #{newId} '{item["name"]}' was added successfully.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET: /DELMUNDOMARCKEVIN_241639_Wishlist/Edit/1
-        public IActionResult Edit(int id)
-        {
-            var item = _store.GetById("wishlist", id);
-            if (item == null)
-            {
-                TempData["Error"] = $"Wishlist item #{id} not found.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            ViewBag.Item = item;
-            return View();
-        }
-
-        // POST: /DELMUNDOMARCKEVIN_241639_Wishlist/Edit/1
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, string? name, string? category, double? price, string? priority, bool purchased)
-        {
-            var existing = _store.GetById("wishlist", id);
-            if (existing == null)
-            {
-                TempData["Error"] = $"Wishlist item #{id} not found.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Wishlist(name, price, priority);
-            if (validationError != null)
-            {
-                ViewBag.Error = validationError;
-                ViewBag.Item = new Dictionary<string, object>
-                {
-                    ["id"] = id,
-                    ["name"] = name ?? "",
-                    ["category"] = category ?? "",
-                    ["price"] = price ?? 0,
-                    ["priority"] = priority ?? "Medium",
-                    ["purchased"] = purchased
-                };
-                return View();
-            }
-
-            var updated = new Dictionary<string, object>
-            {
-                ["name"] = name!.Trim(),
-                ["category"] = string.IsNullOrWhiteSpace(category) ? "General" : category.Trim(),
-                ["price"] = price ?? 0,
-                ["priority"] = string.IsNullOrWhiteSpace(priority) ? "Medium" : priority.Trim(),
-                ["purchased"] = purchased
-            };
-
-            _store.Update("wishlist", id, updated);
-            TempData["Success"] = $"Wishlist item #{id} '{updated["name"]}' updated.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        // POST: /DELMUNDOMARCKEVIN_241639_Wishlist/TogglePurchase/1
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult TogglePurchase(int id)
-        {
-            var item = _store.GetById("wishlist", id);
-            if (item != null)
-            {
-                bool current = Convert.ToBoolean(item["purchased"]);
-                _store.Update("wishlist", id, new Dictionary<string, object> { ["purchased"] = !current });
-                TempData["Success"] = $"Status updated: '{item["name"]}' marked as {(current ? "Pending" : "Purchased")}.";
-            }
-            return RedirectToAction(nameof(Index));
-        }
-
-        // POST: /DELMUNDOMARCKEVIN_241639_Wishlist/Delete/1
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Delete(int id)
-        {
-            bool removed = _store.Delete("wishlist", id);
-            if (removed)
-            {
-                TempData["Success"] = $"Wishlist item #{id} was deleted.";
-            }
-            else
-            {
-                TempData["Error"] = $"Wishlist item #{id} not found.";
-            }
-            return RedirectToAction(nameof(Index));
-        }
+        IEnumerable<DELMUNDOMARCKEVIN_241639_WishlistItem> items = store.GetAll();
+        if (!string.IsNullOrWhiteSpace(search))
+        { var query = search.Trim(); items = items.Where(item => item.Name.Contains(query, StringComparison.OrdinalIgnoreCase) || item.Category.Contains(query, StringComparison.OrdinalIgnoreCase)); }
+        if (!string.IsNullOrWhiteSpace(priority) && priority != "All") items = items.Where(item => item.Priority.Equals(priority, StringComparison.OrdinalIgnoreCase));
+        return View(new DELMUNDOMARCKEVIN_241639_WishlistIndexModel(items.ToArray(), search, priority));
+    }
+    public IActionResult Create() => View(new DELMUNDOMARCKEVIN_241639_WishlistInput { Price = 2500 });
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult Create(DELMUNDOMARCKEVIN_241639_WishlistInput input)
+    {
+        if (!ModelState.IsValid) return View(input);
+        var saved = store.Insert(input.ToRecord());
+        TempData["Success"] = $"Record #{saved.Id} added successfully.";
+        return RedirectToAction(nameof(Index));
+    }
+    public IActionResult Edit(int id)
+    {
+        var item = store.GetById(id);
+        if (item == null) return Missing(id);
+        return View(new DELMUNDOMARCKEVIN_241639_WishlistEditModel(id, DELMUNDOMARCKEVIN_241639_WishlistInput.FromRecord(item)));
+    }
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult Edit(int id, DELMUNDOMARCKEVIN_241639_WishlistInput input)
+    {
+        if (store.GetById(id) == null) return Missing(id);
+        if (!ModelState.IsValid) return View(new DELMUNDOMARCKEVIN_241639_WishlistEditModel(id, input));
+        if (!store.Update(id, input.ToRecord(id))) return Missing(id);
+        TempData["Success"] = $"Record #{id} updated successfully.";
+        return RedirectToAction(nameof(Index));
+    }
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult Delete(int id)
+    {
+        if (!store.Delete(id)) return Missing(id);
+        TempData["Success"] = $"Record #{id} deleted.";
+        return RedirectToAction(nameof(Index));
+    }
+    private IActionResult Missing(int id)
+    { TempData["Error"] = $"Record #{id} was not found."; return RedirectToAction(nameof(Index)); }
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult TogglePurchase(int id)
+    {
+        if (!store.Change(id, item => item with { Purchased = !item.Purchased })) return Missing(id);
+        TempData["Success"] = "Purchase status updated.";
+        return RedirectToAction(nameof(Index));
     }
 }

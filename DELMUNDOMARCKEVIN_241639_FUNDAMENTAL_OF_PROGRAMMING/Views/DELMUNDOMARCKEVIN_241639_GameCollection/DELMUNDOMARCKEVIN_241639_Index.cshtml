@@ -1,6 +1,7 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_GameCollectionIndexModel
 @{
     ViewData["Title"] = "Game Collection Manager";
-    var games = ViewBag.Games as List<Dictionary<string, object>> ?? new();
+    var games = Model.Items;
 }
 
 <!-- Header -->
@@ -21,19 +22,19 @@
     <form method="get" asp-action="Index" class="row g-2 align-items-center">
         <div class="col-12 col-md-6 position-relative">
             <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
-            <input type="text" 
-                   name="search" aria-label="Search records" 
-                   value="@ViewBag.Search" 
-                   class="form-apple-input ps-5" 
+            <input type="text"
+                   name="search" aria-label="Search records"
+                   value="@Model.Search"
+                   class="form-apple-input ps-5"
                    placeholder="Search games by title, genre, or platform..." />
         </div>
         <div class="col-6 col-md-3">
             <select name="status" class="form-apple-select">
                 <option value="All">All Completion Statuses</option>
-                <option value="Backlog" selected="@(ViewBag.StatusFilter == "Backlog")">Backlog</option>
-                <option value="In Progress" selected="@(ViewBag.StatusFilter == "In Progress")">In Progress</option>
-                <option value="Completed" selected="@(ViewBag.StatusFilter == "Completed")">Completed</option>
-                <option value="Abandoned" selected="@(ViewBag.StatusFilter == "Abandoned")">Abandoned</option>
+                <option value="Backlog" selected="@(Model.Filter == "Backlog")">Backlog</option>
+                <option value="In Progress" selected="@(Model.Filter == "In Progress")">In Progress</option>
+                <option value="Completed" selected="@(Model.Filter == "Completed")">Completed</option>
+                <option value="Abandoned" selected="@(Model.Filter == "Abandoned")">Abandoned</option>
             </select>
         </div>
         <div class="col-4 col-md-2">
@@ -82,20 +83,20 @@
                 {
                     foreach (var g in games)
                     {
-                        int id = Convert.ToInt32(g["id"]);
-                        string st = g["status"]?.ToString() ?? "Backlog";
-                        int rating = Convert.ToInt32(g["rating"]);
+                        int id = g.Id;
+                        string st = g.Status?.ToString() ?? "Backlog";
+                        int rating = g.Rating;
                         var stBadge = st == "Completed" ? "bg-success text-white" :
                                       st == "In Progress" ? "status-in-progress" :
                                       st == "Backlog" ? "bg-warning text-dark" : "bg-light text-secondary border";
 
                         <tr>
                             <td class="font-monospace text-secondary">#@id</td>
-                            <td class="fw-bold text-primary">@g["title"]</td>
-                            <td class="text-secondary">@g["genre"]</td>
+                            <td class="fw-bold text-primary">@g.Title</td>
+                            <td class="text-secondary">@g.Genre</td>
                             <td>
                                 <span class="badge bg-light text-dark border rounded-pill px-2 py-1 small">
-                                    <i class="bi bi-display me-1"></i> @g["platform"]
+                                    <i class="bi bi-display me-1"></i> @g.Platform
                                 </span>
                             </td>
                             <td>
@@ -123,7 +124,7 @@
                                     <a asp-action="Edit" asp-route-id="@id" class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Edit game" aria-label="Edit game">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form method="post" asp-action="Delete" asp-route-id="@id" class="d-inline" onsubmit="return confirm('Delete \'@g["title"]\' from library?');">
+                                    <form method="post" asp-action="Delete" asp-route-id="@id" class="d-inline" onsubmit="return confirm('Delete this record?');">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Delete game" aria-label="Delete game">
                                             <i class="bi bi-trash"></i>
@@ -179,27 +180,8 @@
             </div>
             <pre class="macos-code-body" id="gameCode"><code>public IActionResult Index(string? search, string? status)
 {
-    var games = _store.GetAll("games");
-
-    if (!string.IsNullOrWhiteSpace(search))
-    {
-        string query = search.Trim().ToLowerInvariant();
-        games = games.Where(x =&gt;
-            (x.ContainsKey("title") &amp;&amp; x["title"].ToString()!.ToLowerInvariant().Contains(query)) ||
-            (x.ContainsKey("genre") &amp;&amp; x["genre"].ToString()!.ToLowerInvariant().Contains(query)) ||
-            (x.ContainsKey("platform") &amp;&amp; x["platform"].ToString()!.ToLowerInvariant().Contains(query))
-        ).ToList();
-    }
-
-    if (!string.IsNullOrWhiteSpace(status) &amp;&amp; status != "All")
-    {
-        games = games.Where(x =&gt;
-            x.ContainsKey("status") &amp;&amp; x["status"].ToString()!.Equals(status, StringComparison.OrdinalIgnoreCase)
-        ).ToList();
-    }
-
-    ViewBag.Games = games;
-    return View();
+    // Filter typed records and pass a DELMUNDOMARCKEVIN_241639_GameCollectionIndexModel to the view.
+    // See the controller for the complete implementation.
 }</code></pre>
         </div>
     </div>

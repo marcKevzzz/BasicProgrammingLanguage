@@ -1,4 +1,4 @@
-@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Services.PayrollBreakdown
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_PayrollModel
 @{ ViewData["Title"] = "Payroll Calculator"; }
 <div class="mb-4"><h1 class="hero-title">Payroll Calculator</h1><p class="hero-subtitle">Calculate monthly take-home pay in pesos after employee contributions and graduated BIR withholding tax.</p></div>
 <div class="row g-4 mb-5">
@@ -7,31 +7,31 @@
         <form method="post" asp-action="Payroll" class="d-flex flex-column flex-grow-1">
             @Html.AntiForgeryToken()
             <label class="form-apple-label" for="salary">Basic salary (₱)</label>
-            <input class="form-apple-input" id="salary" name="salary" type="number" inputmode="decimal" min="0.01" step="0.01" value="@ViewBag.Salary" required aria-describedby="@(ViewBag.Error != null ? "salary-help salary-error" : "salary-help")" aria-invalid="@(ViewBag.Error != null ? "true" : "false")" />
+            <input class="form-apple-input" id="salary" name="salary" type="number" inputmode="decimal" min="0.01" step="0.01" value="@Model.Salary" required aria-describedby="@(Model.Error != null ? "salary-help salary-error" : "salary-help")" aria-invalid="@(Model.Error != null ? "true" : "false")" />
             <p class="form-text" id="salary-help">Enter a positive amount with up to two decimal places.</p>
-            @if (ViewBag.Error != null) { <p class="text-danger" role="alert" id="salary-error">@ViewBag.Error</p> }
+            @if (Model.Error != null) { <p class="text-danger" role="alert" id="salary-error">@Model.Error</p> }
             <div class="d-flex flex-wrap gap-2 mt-auto pt-4"><button class="btn-apple-primary" type="submit">Calculate payroll</button><a class="btn-apple-secondary" asp-action="Payroll" asp-route-notice="reset">Reset sample</a></div>
         </form>
 
     </div></div>
     <div class="col-12 col-lg-7"><div class="apple-card h-100">
         <h2 class="h5 fw-bold mb-3">Monthly payslip</h2>
-        @if (Model == null)
+        @if (Model.Result == null)
         { <div class="array-empty text-center text-secondary py-5"><i class="bi bi-receipt fs-1 d-block opacity-50 mb-3" aria-hidden="true"></i><p class="mb-0">Enter your basic salary and select <strong>Calculate payroll</strong> to see your contributions, taxable compensation, and net pay.</p></div> }
         else
         {
             <dl class="payroll-summary">
-                <div><dt>Gross basic salary</dt><dd>₱@Model.Salary.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
-                <div><dt>SSS employee share <small class="d-block text-secondary">Salary credit: ₱@Model.SalaryCredit.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</small></dt><dd class="payroll-deduction">−₱@Model.Sss.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
-                <div><dt>PhilHealth employee share</dt><dd class="payroll-deduction">−₱@Model.PhilHealth.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
-                <div><dt>Pag-IBIG employee share</dt><dd class="payroll-deduction">−₱@Model.PagIbig.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
-                <div><dt>Total statutory contributions</dt><dd class="payroll-deduction">−₱@Model.Contributions.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
-                <div><dt>Taxable compensation</dt><dd>₱@Model.TaxableIncome.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
-                <div><dt>BIR withholding tax</dt><dd class="payroll-deduction">−₱@Model.WithholdingTax.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
-                <div><dt>Total deductions</dt><dd class="payroll-deduction">−₱@Model.TotalDeductions.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
-                <div class="payroll-net @(Model.NetPay < 0 ? "payroll-net-negative" : "")"><dt>Net take-home pay</dt><dd>₱@Model.NetPay.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
+                <div><dt>Gross basic salary</dt><dd>₱@Model.Result!.Salary.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
+                <div><dt>SSS employee share <small class="d-block text-secondary">Salary credit: ₱@Model.Result!.SalaryCredit.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</small></dt><dd class="payroll-deduction">−₱@Model.Result!.Sss.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
+                <div><dt>PhilHealth employee share</dt><dd class="payroll-deduction">−₱@Model.Result!.PhilHealth.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
+                <div><dt>Pag-IBIG employee share</dt><dd class="payroll-deduction">−₱@Model.Result!.PagIbig.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
+                <div><dt>Total statutory contributions</dt><dd class="payroll-deduction">−₱@Model.Result!.Contributions.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
+                <div><dt>Taxable compensation</dt><dd>₱@Model.Result!.TaxableIncome.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
+                <div><dt>BIR withholding tax</dt><dd class="payroll-deduction">−₱@Model.Result!.WithholdingTax.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
+                <div><dt>Total deductions</dt><dd class="payroll-deduction">−₱@Model.Result!.TotalDeductions.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
+                <div class="payroll-net @(Model.Result!.NetPay < 0 ? "payroll-net-negative" : "")"><dt>Net take-home pay</dt><dd>₱@Model.Result!.NetPay.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
             </dl>
-            @if (Model.NetPay < 0) { <p class="text-secondary">The minimum contribution bases exceed this salary, producing a negative balance in this simulation.</p> }
+            @if (Model.Result!.NetPay < 0) { <p class="text-secondary">The minimum contribution bases exceed this salary, producing a negative balance in this simulation.</p> }
         }
     </div></div>
 </div>
@@ -39,7 +39,7 @@
     <summary>How it works</summary>
     <div class="lesson-content">
         <ol>
-            <li><strong>Validate the input:</strong> <code>decimal.TryParse()</code> rejects invalid or overflowing numbers, and <code>if</code> rejects zero, negative amounts, and fractions smaller than one centavo.</li>
+            <li><strong>Use nested conditions:</strong> the outer salary check contains the centavo-precision check, and only its valid branch calculates contributions and tax; this is an actual <code>if</code> inside another <code>if</code>.</li><li><strong>Validate the input:</strong> <code>decimal.TryParse()</code> rejects invalid or overflowing numbers, and <code>if</code> rejects zero, negative amounts, and fractions smaller than one centavo.</li>
             <li><strong>Find SSS salary credit:</strong> the 2025 employee schedule uses ₱500 credit steps, a ₱5,000 floor, and a ₱35,000 cap; the employee pays 5% of that credit, including the mandatory provident-fund share.</li>
             <li><strong>Apply contribution limits:</strong> PhilHealth uses 5% of salary clamped to ₱10,000–₱100,000, divided equally with the employer; Pag-IBIG uses 1% at salaries up to ₱1,500 and 2% above, with a ₱10,000 compensation cap.</li>
             <li><strong>Derive taxable compensation:</strong> subtract the three rounded employee contributions from basic salary, with a minimum taxable amount of zero.</li>
@@ -69,13 +69,13 @@
         [ValidateAntiForgeryToken]
         public IActionResult Payroll(string? salary)
         {
-            ViewBag.Salary = salary;
+            Model.Salary = salary;
             if (!decimal.TryParse(salary, System.Globalization.NumberStyles.AllowDecimalPoint |
                 System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowLeadingWhite |
                 System.Globalization.NumberStyles.AllowTrailingWhite, System.Globalization.CultureInfo.InvariantCulture,
                 out decimal basicSalary) || basicSalary &lt;= 0 || basicSalary != Services.PayrollCalculator.Money(basicSalary))
             {
-                ViewBag.Error = "Enter a positive monthly salary with up to two decimal places, such as 30000.00.";
+                Model.Error = "Enter a positive monthly salary with up to two decimal places, such as 30000.00.";
                 return View();
             }
             return View(Services.PayrollCalculator.Calculate(basicSalary));
@@ -102,18 +102,23 @@ public static class PayrollCalculator
     // SSS employee schedule effective January 2025; PhilHealth 5%; HDMF Circular 460.
     public static PayrollBreakdown Calculate(decimal salary)
     {
-        if (salary &lt;= 0 || salary != Money(salary))
-            throw new ArgumentOutOfRangeException(nameof(salary));
-
-        decimal credit = Math.Clamp(decimal.Floor((Math.Min(salary, 35000m) + 250m) / 500m) * 500m, 5000m, 35000m);
-        decimal sss = Money(credit * 0.05m);
-        decimal philHealth = Money(Math.Clamp(salary, 10000m, 100000m) * 0.05m / 2m);
-        decimal pagIbigRate;
-        if (salary &lt;= 1500m) pagIbigRate = 0.01m;
-        else pagIbigRate = 0.02m;
-        decimal pagIbig = Money(Math.Min(salary, 10000m) * pagIbigRate);
-        decimal taxable = Math.Max(0m, salary - sss - philHealth - pagIbig);
-        return new(salary, credit, sss, philHealth, pagIbig, taxable, MonthlyTax(taxable));
+        if (salary &gt; 0)
+        {
+            if (salary == Money(salary))
+            {
+                decimal credit = Math.Clamp(decimal.Floor((Math.Min(salary, 35000m) + 250m) / 500m) * 500m, 5000m, 35000m);
+                decimal sss = Money(credit * 0.05m);
+                decimal philHealth = Money(Math.Clamp(salary, 10000m, 100000m) * 0.05m / 2m);
+                decimal pagIbigRate;
+                if (salary &lt;= 1500m) pagIbigRate = 0.01m;
+                else pagIbigRate = 0.02m;
+                decimal pagIbig = Money(Math.Min(salary, 10000m) * pagIbigRate);
+                decimal taxable = Math.Max(0m, salary - sss - philHealth - pagIbig);
+                return new(salary, credit, sss, philHealth, pagIbig, taxable, MonthlyTax(taxable));
+            }
+            else throw new ArgumentException("Salary must use whole centavos.", nameof(salary));
+        }
+        else throw new ArgumentOutOfRangeException(nameof(salary));
     }
 
     // BIR RR 11-2018 Annex E: monthly table effective January 2023 onwards.
@@ -128,7 +133,8 @@ public static class PayrollCalculator
         else tax = 183541.80m + (taxable - 666667m) * 0.35m;
         return Money(tax);
     }
-}</code></pre>
+}
+</code></pre>
         </div>
     </div>
 </details>

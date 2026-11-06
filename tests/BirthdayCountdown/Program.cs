@@ -5,8 +5,8 @@ void Check(DateOnly birthDate, int expected)
 {
     var controller = new DELMUNDOMARCKEVIN_241639_InputOutputController();
     controller.BirthdayCountdown(birthDate);
-    if (controller.ViewBag.Success != true || (int)controller.ViewBag.DaysRemaining != expected ||
-        (int)controller.ViewBag.Weeks != expected / 7 || (int)controller.ViewBag.RemainingDays != expected % 7)
+    if (((dynamic)controller.ViewData.Model!).Success != true || (int)((dynamic)controller.ViewData.Model!).DaysRemaining != expected ||
+        (int)((dynamic)controller.ViewData.Model!).Weeks != expected / 7 || (int)((dynamic)controller.ViewData.Model!).RemainingDays != expected % 7)
         throw new Exception($"Incorrect countdown for {birthDate}");
 }
 Check(today.AddYears(-20), 0);
@@ -23,23 +23,23 @@ foreach (DateOnly? invalid in new DateOnly?[] { null, today.AddDays(1) })
 {
     var controller = new DELMUNDOMARCKEVIN_241639_InputOutputController();
     controller.BirthdayCountdown(invalid);
-    if (controller.ViewBag.Error == null || controller.ViewBag.Success == true)
+    if (((dynamic)controller.ViewData.Model!).Error == null || ((dynamic)controller.ViewData.Model!).Success == true)
         throw new Exception("Invalid birth date accepted");
 }
 var malformed = new DELMUNDOMARCKEVIN_241639_InputOutputController();
 malformed.ModelState.AddModelError("birthday", "Invalid date");
 malformed.BirthdayCountdown(today);
-if (malformed.ViewBag.Error == null) throw new Exception("Malformed date accepted");
+if (((dynamic)malformed.ViewData.Model!).Error == null) throw new Exception("Malformed date accepted");
 Console.WriteLine("Birthday countdown passed: today, tomorrow, past birthday, leap birthday, missing/future/malformed input.");
 
 var study = new DELMUNDOMARCKEVIN_241639_InputOutputController();
 study.StudyTime(new[] { "My own subject", "Research" }, new[] { 1.23, 30.0 });
-if (study.ViewBag.Success != true || Math.Abs((double)study.ViewBag.TotalHours - 31.23) > .00001)
+if (((dynamic)study.ViewData.Model!).Success != true || Math.Abs((double)((dynamic)study.ViewData.Model!).TotalHours - 31.23) > .00001)
     throw new Exception("Custom study hours failed");
 foreach (var invalid in new[] { -1.0, double.NaN, double.PositiveInfinity }) {
     study = new DELMUNDOMARCKEVIN_241639_InputOutputController();
     study.StudyTime(new[] { "Test" }, new[] { invalid });
-    if (study.ViewBag.Error == null) throw new Exception("Invalid study hours accepted");
+    if (((dynamic)study.ViewData.Model!).Error == null) throw new Exception("Invalid study hours accepted");
 }
 var session = new TestSession();
 var pinController = new DELMUNDOMARCKEVIN_241639_RepetitionController {
@@ -48,12 +48,12 @@ var pinController = new DELMUNDOMARCKEVIN_241639_RepetitionController {
     }
 };
 pinController.PinVerification();
-string firstPin = pinController.ViewBag.DemoPin;
+string firstPin = ((dynamic)pinController.ViewData.Model!).DemoPin;
 if (firstPin.Length != 4 || !firstPin.All(char.IsDigit)) throw new Exception("Invalid generated PIN");
 pinController.PinVerification(firstPin, null);
-if (pinController.ViewBag.Success != true) throw new Exception("Generated PIN not accepted");
+if (((dynamic)pinController.ViewData.Model!).Success != true) throw new Exception("Generated PIN not accepted");
 pinController.PinVerification();
-if ((string)pinController.ViewBag.DemoPin == firstPin) throw new Exception("PIN did not change on refresh");
+if ((string)((dynamic)pinController.ViewData.Model!).DemoPin == firstPin) throw new Exception("PIN did not change on refresh");
 Console.WriteLine("Study hours and refreshed session PIN checks passed.");
 
 class TestSession : Microsoft.AspNetCore.Http.ISession {

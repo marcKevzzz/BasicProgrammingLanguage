@@ -1,9 +1,7 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_WishlistEditModel
 @{
     ViewData["Title"] = "Edit Wishlist Item";
-    var item = ViewBag.Item as Dictionary<string, object> ?? new();
-    int id = Convert.ToInt32(item.GetValueOrDefault("id", 0));
-    string pri = item.GetValueOrDefault("priority")?.ToString() ?? "Medium";
-    bool purchased = Convert.ToBoolean(item.GetValueOrDefault("purchased", false));
+    int id = Model.Id;
 }
 
 <div class="mb-4">
@@ -14,49 +12,11 @@
 <div class="row justify-content-center">
     <div class="col-12 col-md-8 col-lg-6">
         <div class="apple-card">
-            @if (ViewBag.Error != null)
-            {
-                <div class="alert alert-danger rounded-4 border-0 mb-4" role="alert">
-                    <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                    @ViewBag.Error
-                </div>
-            }
-
+            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
             <form method="post" asp-action="Edit" asp-route-id="@id">
                 @Html.AntiForgeryToken()
 
-                <div class="mb-3">
-                    <label for="name" class="form-apple-label">Item Name <span class="text-danger">*</span></label>
-                    <input type="text" id="name" name="name" value="@item.GetValueOrDefault("name")" class="form-apple-input" required />
-                </div>
-
-                <div class="row g-3 mb-3">
-                    <div class="col-6">
-                        <label for="category" class="form-apple-label">Category</label>
-                        <input type="text" id="category" name="category" value="@item.GetValueOrDefault("category")" class="form-apple-input" />
-                    </div>
-                    <div class="col-6">
-                        <label for="price" class="form-apple-label">Estimated Price (₱) <span class="text-danger">*</span></label>
-                        <input type="number" id="price" name="price" value="@item.GetValueOrDefault("price")" min="0" step="50" class="form-apple-input" required />
-                    </div>
-                </div>
-
-                <div class="row g-3 mb-4">
-                    <div class="col-6">
-                        <label for="priority" class="form-apple-label">Priority Level</label>
-                        <select id="priority" name="priority" class="form-apple-select">
-                            <option value="High" selected="@(pri == "High")">🔥 High Priority</option>
-                            <option value="Medium" selected="@(pri == "Medium")">⭐ Medium Priority</option>
-                            <option value="Low" selected="@(pri == "Low")">🌱 Low Priority</option>
-                        </select>
-                    </div>
-                    <div class="col-6 d-flex align-items-end">
-                        <div class="form-check form-switch p-2 ps-5 rounded-3 bg-light border w-100">
-                            <input class="form-check-input ms-n5" type="checkbox" id="purchased" name="purchased" value="true" @(purchased ? "checked" : "") />
-                            <label class="form-check-label small fw-semibold" for="purchased">Mark as Purchased</label>
-                        </div>
-                    </div>
-                </div>
+                <partial name="DELMUNDOMARCKEVIN_241639_Fields" model="Model.Input" />
 
                 <div class="form-actions d-flex align-items-center gap-2">
                     <button type="submit" class="btn-apple-primary">

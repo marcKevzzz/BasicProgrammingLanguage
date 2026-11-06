@@ -4,8 +4,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     initArrayEditors();
-    initGridPrograms();
-    initMaze();
+    initServerGridPrograms();
     initSortSimulation();
     initTheme();
     initSidebarGroups();
@@ -285,6 +284,10 @@ function initDashboardFilter() {
             const selected = pill.dataset.filter === activeFilter;
             pill.classList.toggle('active', selected);
             pill.setAttribute('aria-pressed', String(selected));
+            const track = pill.parentElement;
+            if (selected && track && track.scrollWidth > track.clientWidth) {
+                track.scrollLeft = pill.offsetLeft - track.offsetLeft - (track.clientWidth - pill.offsetWidth) / 2;
+            }
         });
         const count = document.getElementById('programCount');
         if (count) count.textContent = `${visibleCount} ${visibleCount === 1 ? 'program' : 'programs'}`;
@@ -458,129 +461,58 @@ function initSortSimulation() {
     });
 }
 
-function getTicTacToeOutcome(board) {
-    const lines = [];
-    for (let i = 0; i < 3; i++) { lines.push(board[i]); lines.push(board.map(row => row[i])); }
-    lines.push([board[0][0], board[1][1], board[2][2]], [board[0][2], board[1][1], board[2][0]]);
-    const win = lines.find(line => line[0] && line.every(cell => cell === line[0]));
-    return win ? win[0] : board.flat().every(Boolean) ? 'draw' : null;
-}
-function initGridPrograms() {
-    document.querySelectorAll('[data-theater]').forEach(panel => {
-        const seats = Array.from({ length: 5 }, () => Array(8).fill(false));
-        const prices = [150, 150, 300, 300, 200].map(price => Array(8).fill(price));
-        const grid = panel.querySelector('[data-seat-grid]');
-        const status = panel.querySelector('[data-seat-status]');
-        function render() {
-            grid.replaceChildren();
-            seats.forEach((row, r) => row.forEach((selected, c) => {
-                const button = document.createElement('button'); button.type = 'button';
-                const label = String.fromCharCode(65 + r) + (c + 1);
-                button.className = 'seat-button'; button.textContent = label;
-                button.setAttribute('aria-label', `Seat ${label}, ₱${prices[r][c]}`); button.setAttribute('aria-pressed', String(selected));
-                button.addEventListener('click', () => { seats[r][c] = !seats[r][c]; render(); grid.children[r * 8 + c].focus(); });
-                grid.append(button);
-            }));
-            const count = seats.flat().filter(Boolean).length;
-            status.textContent = `${count} selected · ${40 - count} available`;
-            const selection = []; let total = 0;
-            seats.forEach((row, r) => row.forEach((selected, c) => { if (selected) { total += prices[r][c]; selection.push(String.fromCharCode(65 + r) + (c + 1)); } }));
-            panel.querySelector('[data-seat-total]').textContent = `₱${total.toLocaleString('en-PH')}`;
-            panel.querySelector('[data-seat-selection]').textContent = selection.length ? selection.join(', ') : 'No seats selected.';
-        }
-        panel.querySelector('[data-seat-reset]').addEventListener('click', () => { seats.forEach(row => row.fill(false)); render(); });
-        render();
-    });
-    document.querySelectorAll('[data-tic-tac-toe]').forEach(panel => {
-        let board, turn;
-        const grid = panel.querySelector('[data-game-board]');
-        const status = panel.querySelector('[data-game-status]');
-        function render() {
-            const outcome = getTicTacToeOutcome(board);
-            status.textContent = outcome === 'draw' ? 'Draw. Start a new game.' : outcome ? `${outcome} wins!` : `${turn}’s turn`;
-            grid.replaceChildren();
-            board.forEach((row, r) => row.forEach((value, c) => {
-                const button = document.createElement('button'); button.type = 'button'; button.className = 'tic-cell' + (getWinningCells(board).includes(r * 3 + c) ? ' tic-winning' : '');
-                button.textContent = value; button.disabled = Boolean(value || outcome);
-                button.setAttribute('aria-label', `Row ${r + 1}, column ${c + 1}: ${value || 'empty'}`);
-                button.addEventListener('click', () => { board[r][c] = turn; turn = turn === 'X' ? 'O' : 'X'; render(); const outcome = getTicTacToeOutcome(board); if (outcome) { showToast(outcome === 'draw' ? 'Game ended in a draw.' : `${outcome} wins!`); } const available = [...grid.querySelectorAll('button')].find(cell => !cell.disabled); available?.focus(); });
-                grid.append(button);
-            }));
-            const winning = getWinningCells(board);
-            if (winning.length) {
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                line.setAttribute('class', 'tic-win-line'); line.setAttribute('viewBox', '0 0 300 300');
-                line.setAttribute('aria-hidden', 'true');
-                const stroke = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                const [first, , last] = winning;
-                stroke.setAttribute('x1', 50 + first % 3 * 100); stroke.setAttribute('y1', 50 + Math.floor(first / 3) * 100);
-                stroke.setAttribute('x2', 50 + last % 3 * 100); stroke.setAttribute('y2', 50 + Math.floor(last / 3) * 100);
-                line.append(stroke); grid.append(line);
-            }
-        }
-        function reset() { board = Array.from({ length: 3 }, () => Array(3).fill('')); turn = 'X'; render(); }
-        panel.querySelector('[data-game-reset]').addEventListener('click', reset); reset();
-    });
-}
-
-function getWinningCells(board) {
-    const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-    const cells = board.flat();
-    return lines.find(line => cells[line[0]] && line.every(i => cells[i] === cells[line[0]])) || [];
-}
-function generateMaze(rows = 15, columns = 25) {
-    const map = Array.from({ length: rows }, () => Array(columns).fill('1'));
-    const stack = [[1, 1]];
-    map[1][1] = '0';
-    while (stack.length) {
-        const [r, c] = stack[stack.length - 1];
-        const options = [[-2,0],[2,0],[0,-2],[0,2]].filter(([dr, dc]) =>
-            r + dr > 0 && r + dr < rows - 1 && c + dc > 0 && c + dc < columns - 1 && map[r + dr][c + dc] === '1');
-        if (!options.length) { stack.pop(); continue; }
-        const [dr, dc] = options[Math.floor(Math.random() * options.length)];
-        map[r + dr / 2][c + dc / 2] = '0'; map[r + dr][c + dc] = '0';
-        stack.push([r + dr, c + dc]);
-    }
-    map[1][0] = 'S'; map[rows - 2][columns - 1] = 'E';
-    return map;
-}
-function mazeDestination(map, row, col, direction) {
-    const delta = { up: [-1,0], down: [1,0], left: [0,-1], right: [0,1] }[direction];
-    if (!delta) return null;
-    const r = row + delta[0], c = col + delta[1];
-    return map[r]?.[c] && map[r][c] !== '1' ? [r,c] : null;
-}
-function initMaze() {
-    document.querySelectorAll('[data-maze]').forEach(panel => {
-        const grid = panel.querySelector('[data-maze-grid]'), status = panel.querySelector('[data-maze-status]');
-        let mazeMap = generateMaze(), row = 1, col = 0, moves = 0, won = false;
-        grid.style.setProperty('--maze-columns', mazeMap[0].length);
-        function render(message = '') {
-            grid.replaceChildren();
-            mazeMap.forEach((line, r) => line.forEach((value, c) => {
-                const cell = document.createElement('span');
-                cell.className = 'maze-cell' + (value === '1' ? ' maze-wall' : '') + (r === row && c === col ? ' maze-player' : '');
-                cell.textContent = value === 'S' || value === 'E' ? value : '';
-                cell.setAttribute('aria-label', r === row && c === col ? 'Player' : value === '1' ? 'Wall' : value === 'E' ? 'Exit' : 'Path'); grid.append(cell);
-            }));
-            status.textContent = message || `${moves} moves. Find the exit.`;
-        }
-        function move(direction) {
-            if (won) return;
-            const target = mazeDestination(mazeMap, row, col, direction);
-            if (!target) { status.textContent = 'Blocked. Try another direction.'; return; }
-            [row,col] = target; moves++; won = mazeMap[row][col] === 'E';
-            render(won ? `Exit reached in ${moves} moves!` : '');
-            if (won) showToast('Maze complete!');
-        }
-        panel.addEventListener('keydown', event => {
-            if (event.target.closest('input, textarea, select')) return;
-            const direction = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' }[event.key];
-            if (direction) { event.preventDefault(); move(direction); }
+// Forms work without JavaScript; fetch only keeps focus and scroll in place.
+function initServerGridPrograms() {
+    document.querySelectorAll('[data-array-program]').forEach(panel => {
+        let busy = false;
+        panel.addEventListener('submit', async event => {
+            const form = event.target;
+            if (!(form instanceof HTMLFormElement)) return;
+            event.preventDefault();
+            if (busy) return;
+            busy = true;
+            const submitter = event.submitter;
+            const focusKey = submitter?.dataset.cell;
+            const direction = submitter?.dataset.direction;
+            const data = new FormData(form);
+            if (submitter?.name) data.append(submitter.name, submitter.value);
+            const scroller = panel.querySelector('.maze-viewport, .seat-viewport');
+            const scrollLeft = scroller?.scrollLeft || 0;
+            const scrollTop = scroller?.scrollTop || 0;
+            panel.setAttribute('aria-busy', 'true');
+            try {
+                const response = await fetch(form.action, { method: 'POST', body: data, credentials: 'same-origin' });
+                if (!response.ok) throw new Error('Request failed');
+                const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+                const replacement = page.querySelector('[data-array-program]');
+                if (!replacement) throw new Error('Missing result');
+                panel.innerHTML = replacement.innerHTML;
+                const viewport = panel.querySelector('.maze-viewport, .seat-viewport');
+                if (viewport) { viewport.scrollLeft = scrollLeft; viewport.scrollTop = scrollTop; }
+                if (direction) {
+                    panel.querySelector('.maze-viewport')?.focus({ preventScroll: true });
+                    const player = panel.querySelector('.maze-player');
+                    if (player && viewport) {
+                        const bounds = player.getBoundingClientRect(), view = viewport.getBoundingClientRect();
+                        if (bounds.left < view.left || bounds.right > view.right) viewport.scrollLeft += bounds.left - view.left - view.width / 2;
+                    }
+                } else if (focusKey !== undefined) {
+                    const cell = [...panel.querySelectorAll('[data-cell]')].find(button => button.dataset.cell === focusKey);
+                    if (cell && !cell.disabled) cell.focus({ preventScroll: true });
+                    else (panel.querySelector('[data-cell]:not(:disabled)') || panel.querySelector('button[value="reset"]'))?.focus({ preventScroll: true });
+                } else panel.querySelector('button')?.focus({ preventScroll: true });
+            } catch {
+                panel.querySelector('[data-grid-status]').textContent = 'Could not update. Check your connection and try again.';
+            } finally { busy = false; panel.removeAttribute('aria-busy'); }
         });
-        panel.querySelectorAll('[data-move]').forEach(button => button.addEventListener('click', () => move(button.dataset.move)));
-        panel.querySelector('[data-maze-reset]').addEventListener('click', () => { row = 1; col = 0; moves = 0; won = false; render(); grid.focus(); });
-        panel.querySelector('[data-maze-new]').addEventListener('click', () => { mazeMap = generateMaze(); row = 1; col = 0; moves = 0; won = false; render(); grid.focus(); });
-        render();
+        panel.addEventListener('keydown', event => {
+            if (panel.dataset.arrayProgram !== 'maze' || event.target.closest('input, select, textarea')) return;
+            if (event.ctrlKey || event.altKey || event.metaKey) return;
+            const direction = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', W: 'up', a: 'left', A: 'left', s: 'down', S: 'down', d: 'right', D: 'right' }[event.key];
+            if (!direction) return;
+            event.preventDefault();
+            const button = panel.querySelector(`[data-direction="${direction}"]`);
+            if (button && !button.disabled && !busy) button.form.requestSubmit(button);
+        });
     });
 }

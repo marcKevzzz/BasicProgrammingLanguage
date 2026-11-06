@@ -1,3 +1,4 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_WishlistInput
 @{
     ViewData["Title"] = "Add Wishlist Item";
 }
@@ -10,49 +11,11 @@
 <div class="row justify-content-center">
     <div class="col-12 col-md-8 col-lg-6">
         <div class="apple-card">
-            @if (ViewBag.Error != null)
-            {
-                <div class="alert alert-danger rounded-4 border-0 mb-4" role="alert">
-                    <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                    @ViewBag.Error
-                </div>
-            }
-
+            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
             <form method="post" asp-action="Create">
                 @Html.AntiForgeryToken()
 
-                <div class="mb-3">
-                    <label for="name" class="form-apple-label">Item Name <span class="text-danger">*</span></label>
-                    <input type="text" id="name" name="name" value="@ViewBag.NameInput" class="form-apple-input" placeholder="e.g. Ergonomic Office Desk" required />
-                </div>
-
-                <div class="row g-3 mb-3">
-                    <div class="col-6">
-                        <label for="category" class="form-apple-label">Category</label>
-                        <input type="text" id="category" name="category" value="@ViewBag.CategoryInput" class="form-apple-input" placeholder="e.g. Electronics, Books" />
-                    </div>
-                    <div class="col-6">
-                        <label for="price" class="form-apple-label">Estimated Price (₱) <span class="text-danger">*</span></label>
-                        <input type="number" id="price" name="price" value="@(ViewBag.PriceInput ?? 2500)" min="0" step="50" class="form-apple-input" required />
-                    </div>
-                </div>
-
-                <div class="row g-3 mb-4">
-                    <div class="col-6">
-                        <label for="priority" class="form-apple-label">Priority Level</label>
-                        <select id="priority" name="priority" class="form-apple-select">
-                            <option value="High">🔥 High Priority</option>
-                            <option value="Medium" selected>⭐ Medium Priority</option>
-                            <option value="Low">🌱 Low Priority</option>
-                        </select>
-                    </div>
-                    <div class="col-6 d-flex align-items-end">
-                        <div class="form-check form-switch p-2 ps-5 rounded-3 bg-light border w-100">
-                            <input class="form-check-input ms-n5" type="checkbox" id="purchased" name="purchased" value="true" />
-                            <label class="form-check-label small fw-semibold" for="purchased">Already Purchased?</label>
-                        </div>
-                    </div>
-                </div>
+                <partial name="DELMUNDOMARCKEVIN_241639_Fields" model="Model" />
 
                 <div class="form-actions d-flex align-items-center gap-2">
                     <button type="submit" class="btn-apple-primary">

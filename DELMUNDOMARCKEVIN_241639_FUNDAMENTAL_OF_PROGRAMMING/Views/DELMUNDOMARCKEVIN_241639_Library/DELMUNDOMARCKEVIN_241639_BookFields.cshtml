@@ -1,0 +1,19 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_BookInput
+<div class="mb-3">
+    <label for="title" class="form-apple-label">Book Title <span class="text-danger">*</span></label>
+    <input asp-for="Title" id="title" class="form-apple-input" placeholder="e.g. Design Patterns" required />
+</div>
+<div class="mb-3">
+    <label for="author" class="form-apple-label">Author(s) <span class="text-danger">*</span></label>
+    <input asp-for="Author" id="author" class="form-apple-input" placeholder="e.g. Erich Gamma, Richard Helm" required />
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-7">
+        <label for="genre" class="form-apple-label">Genre / Category</label>
+        <input asp-for="Genre" id="genre" class="form-apple-input" placeholder="e.g. Software Architecture" />
+    </div>
+    <div class="col-5">
+        <label for="year" class="form-apple-label">Publication Year <span class="text-danger">*</span></label>
+        <input asp-for="Year" type="number" id="year" min="1400" max="@(DateTime.Now.Year + 1)" class="form-apple-input" required />
+    </div>
+</div>

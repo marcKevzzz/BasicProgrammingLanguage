@@ -1,153 +1,49 @@
 using Microsoft.AspNetCore.Mvc;
+using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models;
 using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Services;
-
-namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
+namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers;
+public class DELMUNDOMARCKEVIN_241639_GameCollectionController(TypedCrudStore<DELMUNDOMARCKEVIN_241639_Game> store) : Controller
 {
-    public class DELMUNDOMARCKEVIN_241639_GameCollectionController : Controller
+    public IActionResult Index(string? search, string? status)
     {
-        private readonly InMemoryCrudStore _store;
-
-        public DELMUNDOMARCKEVIN_241639_GameCollectionController(InMemoryCrudStore store)
-        {
-            _store = store;
-        }
-
-        // GET: /GameCollection
-        public IActionResult Index(string? search, string? status)
-        {
-            var games = _store.GetAll("games");
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                string query = search.Trim().ToLowerInvariant();
-                games = games.Where(x =>
-                    (x.ContainsKey("title") && x["title"].ToString()!.ToLowerInvariant().Contains(query)) ||
-                    (x.ContainsKey("genre") && x["genre"].ToString()!.ToLowerInvariant().Contains(query)) ||
-                    (x.ContainsKey("platform") && x["platform"].ToString()!.ToLowerInvariant().Contains(query))
-                ).ToList();
-                ViewBag.Search = search;
-            }
-
-            if (!string.IsNullOrWhiteSpace(status) && status != "All")
-            {
-                games = games.Where(x =>
-                    x.ContainsKey("status") && x["status"].ToString()!.Equals(status, StringComparison.OrdinalIgnoreCase)
-                ).ToList();
-                ViewBag.StatusFilter = status;
-            }
-
-            ViewBag.Games = games;
-            return View();
-        }
-
-        // GET: /DELMUNDOMARCKEVIN_241639_GameCollection/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: /DELMUNDOMARCKEVIN_241639_GameCollection/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(string? title, string? genre, string? platform, string? status, int? rating)
-        {
-            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Game(title, rating, status, platform);
-            if (validationError != null)
-            {
-                ViewBag.Error = validationError;
-                ViewBag.TitleInput = title;
-                ViewBag.GenreInput = genre;
-                ViewBag.PlatformInput = platform;
-                ViewBag.StatusInput = status;
-                ViewBag.RatingInput = rating;
-                return View();
-            }
-
-            var game = new Dictionary<string, object>
-            {
-                ["title"] = title!.Trim(),
-                ["genre"] = string.IsNullOrWhiteSpace(genre) ? "General" : genre.Trim(),
-                ["platform"] = string.IsNullOrWhiteSpace(platform) ? "PC" : platform.Trim(),
-                ["status"] = string.IsNullOrWhiteSpace(status) ? "Backlog" : status.Trim(),
-                ["rating"] = rating!.Value
-            };
-
-            int newId = _store.Insert("games", game);
-            TempData["Success"] = $"Game #{newId} '{game["title"]}' was added to your library.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET: /DELMUNDOMARCKEVIN_241639_GameCollection/Edit/1
-        public IActionResult Edit(int id)
-        {
-            var game = _store.GetById("games", id);
-            if (game == null)
-            {
-                TempData["Error"] = $"Game #{id} was not found.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            ViewBag.Game = game;
-            return View();
-        }
-
-        // POST: /DELMUNDOMARCKEVIN_241639_GameCollection/Edit/1
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, string? title, string? genre, string? platform, string? status, int? rating)
-        {
-            var existing = _store.GetById("games", id);
-            if (existing == null)
-            {
-                TempData["Error"] = $"Game #{id} not found.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Game(title, rating, status, platform);
-            if (validationError != null)
-            {
-                ViewBag.Error = validationError;
-                ViewBag.Game = new Dictionary<string, object>
-                {
-                    ["id"] = id,
-                    ["title"] = title ?? "",
-                    ["genre"] = genre ?? "",
-                    ["platform"] = platform ?? "",
-                    ["status"] = status ?? "Backlog",
-                    ["rating"] = rating ?? 5
-                };
-                return View();
-            }
-
-            var updated = new Dictionary<string, object>
-            {
-                ["title"] = title!.Trim(),
-                ["genre"] = string.IsNullOrWhiteSpace(genre) ? "General" : genre.Trim(),
-                ["platform"] = string.IsNullOrWhiteSpace(platform) ? "PC" : platform.Trim(),
-                ["status"] = string.IsNullOrWhiteSpace(status) ? "Backlog" : status.Trim(),
-                ["rating"] = rating.HasValue && rating!.Value >= 1 && rating!.Value <= 5 ? rating!.Value : 5
-            };
-
-            _store.Update("games", id, updated);
-            TempData["Success"] = $"Game #{id} '{updated["title"]}' updated successfully.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        // POST: /DELMUNDOMARCKEVIN_241639_GameCollection/Delete/1
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Delete(int id)
-        {
-            bool removed = _store.Delete("games", id);
-            if (removed)
-            {
-                TempData["Success"] = $"Game #{id} was deleted from collection.";
-            }
-            else
-            {
-                TempData["Error"] = $"Game #{id} could not be deleted.";
-            }
-            return RedirectToAction(nameof(Index));
-        }
+        IEnumerable<DELMUNDOMARCKEVIN_241639_Game> items = store.GetAll();
+        if (!string.IsNullOrWhiteSpace(search))
+        { var query = search.Trim(); items = items.Where(item => item.Title.Contains(query, StringComparison.OrdinalIgnoreCase) || item.Genre.Contains(query, StringComparison.OrdinalIgnoreCase) || item.Platform.Contains(query, StringComparison.OrdinalIgnoreCase)); }
+        if (!string.IsNullOrWhiteSpace(status) && status != "All") items = items.Where(item => item.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
+        return View(new DELMUNDOMARCKEVIN_241639_GameCollectionIndexModel(items.ToArray(), search, status));
     }
+    public IActionResult Create() => View(new DELMUNDOMARCKEVIN_241639_GameCollectionInput { Rating = 5 });
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult Create(DELMUNDOMARCKEVIN_241639_GameCollectionInput input)
+    {
+        if (!ModelState.IsValid) return View(input);
+        var saved = store.Insert(input.ToRecord());
+        TempData["Success"] = $"Record #{saved.Id} added successfully.";
+        return RedirectToAction(nameof(Index));
+    }
+    public IActionResult Edit(int id)
+    {
+        var item = store.GetById(id);
+        if (item == null) return Missing(id);
+        return View(new DELMUNDOMARCKEVIN_241639_GameCollectionEditModel(id, DELMUNDOMARCKEVIN_241639_GameCollectionInput.FromRecord(item)));
+    }
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult Edit(int id, DELMUNDOMARCKEVIN_241639_GameCollectionInput input)
+    {
+        if (store.GetById(id) == null) return Missing(id);
+        if (!ModelState.IsValid) return View(new DELMUNDOMARCKEVIN_241639_GameCollectionEditModel(id, input));
+        if (!store.Update(id, input.ToRecord(id))) return Missing(id);
+        TempData["Success"] = $"Record #{id} updated successfully.";
+        return RedirectToAction(nameof(Index));
+    }
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult Delete(int id)
+    {
+        if (!store.Delete(id)) return Missing(id);
+        TempData["Success"] = $"Record #{id} deleted.";
+        return RedirectToAction(nameof(Index));
+    }
+    private IActionResult Missing(int id)
+    { TempData["Error"] = $"Record #{id} was not found."; return RedirectToAction(nameof(Index)); }
+
 }

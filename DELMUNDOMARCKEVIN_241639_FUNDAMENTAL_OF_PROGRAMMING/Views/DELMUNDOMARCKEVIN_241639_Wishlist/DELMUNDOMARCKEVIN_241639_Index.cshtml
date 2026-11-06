@@ -1,6 +1,7 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_WishlistIndexModel
 @{
     ViewData["Title"] = "Personal Wishlist Manager";
-    var wishlist = ViewBag.Wishlist as List<Dictionary<string, object>> ?? new();
+    var wishlist = Model.Items;
 }
 
 <!-- Header -->
@@ -21,18 +22,18 @@
     <form method="get" asp-action="Index" class="row g-2 align-items-center">
         <div class="col-12 col-md-6 position-relative">
             <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
-            <input type="text" 
-                   name="search" aria-label="Search records" 
-                   value="@ViewBag.Search" 
-                   class="form-apple-input ps-5" 
+            <input type="text"
+                   name="search" aria-label="Search records"
+                   value="@Model.Search"
+                   class="form-apple-input ps-5"
                    placeholder="Search wishlist items by name or category..." />
         </div>
         <div class="col-6 col-md-3">
             <select name="priority" class="form-apple-select">
                 <option value="All">All Priorities</option>
-                <option value="High" selected="@(ViewBag.PriorityFilter == "High")">High Priority</option>
-                <option value="Medium" selected="@(ViewBag.PriorityFilter == "Medium")">Medium Priority</option>
-                <option value="Low" selected="@(ViewBag.PriorityFilter == "Low")">Low Priority</option>
+                <option value="High" selected="@(Model.Filter == "High")">High Priority</option>
+                <option value="Medium" selected="@(Model.Filter == "Medium")">Medium Priority</option>
+                <option value="Low" selected="@(Model.Filter == "Low")">Low Priority</option>
             </select>
         </div>
         <div class="col-4 col-md-2">
@@ -51,7 +52,7 @@
 <!-- Wishlist Table -->
 <div class="apple-card mb-5">
     <div class="d-flex align-items-center justify-content-between mb-3">
-        <h2 class="h5 fw-bold mb-0">Wishlist Items (@wishlist.Count Items)</h2>
+        <h2 class="h5 fw-bold mb-0">Wishlist Items (@wishlist.Count @(wishlist.Count == 1 ? "Item" : "Items"))</h2>
     </div>
 
     <div class="table-responsive apple-table-container">
@@ -81,9 +82,9 @@
                 {
                     foreach (var item in wishlist)
                     {
-                        int id = Convert.ToInt32(item["id"]);
-                        bool purchased = Convert.ToBoolean(item["purchased"]);
-                        string pri = item["priority"]?.ToString() ?? "Medium";
+                        int id = item.Id;
+                        bool purchased = item.Purchased;
+                        string pri = item.Priority?.ToString() ?? "Medium";
                         var priBadge = pri == "High" ? "bg-danger text-white" :
                                        pri == "Medium" ? "bg-warning text-dark" : "bg-light text-secondary border";
 
@@ -91,16 +92,16 @@
                             <td class="font-monospace text-secondary">#@id</td>
                             <td>
                                 <span class="fw-bold @(purchased ? "text-decoration-line-through text-secondary" : "text-primary")">
-                                    @item["name"]
+                                    @item.Name
                                 </span>
                             </td>
                             <td>
                                 <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">
-                                    @item["category"]
+                                    @item.Category
                                 </span>
                             </td>
                             <td class="font-monospace fw-semibold">
-                                ₱@string.Format("{0:N2}", item["price"])
+                                ₱@string.Format("{0:N2}", item.Price)
                             </td>
                             <td>
                                 <span class="badge @priBadge rounded-pill px-2 py-1 small">
@@ -121,7 +122,7 @@
                                     <a asp-action="Edit" asp-route-id="@id" class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Edit item" aria-label="Edit item">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form method="post" asp-action="Delete" asp-route-id="@id" class="d-inline" onsubmit="return confirm('Delete \'@item["name"]\' from wishlist?');">
+                                    <form method="post" asp-action="Delete" asp-route-id="@id" class="d-inline" onsubmit="return confirm('Delete this record?');">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Delete item" aria-label="Delete item">
                                             <i class="bi bi-trash"></i>
@@ -148,8 +149,8 @@
                 The <code>purchased</code> state demonstrates dynamic boolean inversion in C#:
             </p>
             <div class="p-3 rounded-3 bg-light border font-monospace small">
-                bool current = (bool)item["purchased"];<br />
-                item["purchased"] = !current;
+                bool current = (bool)item.Purchased;<br />
+                item.Purchased = !current;
             </div>
         </div>
         <div class="col-12 col-md-6">
@@ -179,18 +180,10 @@
                     <i class="bi bi-clipboard"></i> Copy Code
                 </button>
             </div>
-            <pre class="macos-code-body" id="wishCode"><code>[HttpPost]
-[ValidateAntiForgeryToken]
-public IActionResult TogglePurchase(int id)
+            <pre class="macos-code-body" id="wishCode"><code>public IActionResult Index(string? search, string? priority)
 {
-    var item = _store.GetById("wishlist", id);
-    if (item != null)
-    {
-        bool current = Convert.ToBoolean(item["purchased"]);
-        _store.Update("wishlist", id, new Dictionary&lt;string, object&gt; { ["purchased"] = !current });
-        TempData["Success"] = $"Status updated: '{item["name"]}' marked as {(current ? "Pending" : "Purchased")}.";
-    }
-    return RedirectToAction(nameof(Index));
+    // Filter typed records and pass a DELMUNDOMARCKEVIN_241639_WishlistIndexModel to the view.
+    // See the controller for the complete implementation.
 }</code></pre>
         </div>
     </div>

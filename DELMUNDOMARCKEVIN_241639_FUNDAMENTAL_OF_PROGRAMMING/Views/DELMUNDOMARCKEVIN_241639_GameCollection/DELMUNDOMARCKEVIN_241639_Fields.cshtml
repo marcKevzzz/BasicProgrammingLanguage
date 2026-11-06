@@ -1,0 +1,44 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_GameCollectionInput
+                <div class="mb-3">
+                    <label for="title" class="form-apple-label">Game Title <span class="text-danger">*</span></label>
+                    <input type="text" id="title" asp-for="Title" class="form-apple-input" placeholder="e.g. Elden Ring" required />
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label for="genre" class="form-apple-label">Genre</label>
+                        <input type="text" id="genre" asp-for="Genre" class="form-apple-input" placeholder="e.g. Action RPG" />
+                    </div>
+                    <div class="col-6">
+                        <label for="platform" class="form-apple-label">Platform</label>
+                        <select id="platform" asp-for="Platform" class="form-apple-select">
+                            <option value="PC">🖥️ PC (Steam / Epic)</option>
+                            <option value="PlayStation 5">🎮 PlayStation 5</option>
+                            <option value="Nintendo Switch">🕹️ Nintendo Switch</option>
+                            <option value="Xbox Series X">🟢 Xbox Series X</option>
+                            <option value="Mobile / iOS">📱 Mobile / iOS</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <label for="status" class="form-apple-label">Completion Status</label>
+                        <select id="status" asp-for="Status" class="form-apple-select">
+                            <option value="Backlog">📦 Backlog (Unplayed)</option>
+                            <option value="In Progress">⚔️ In Progress (Active)</option>
+                            <option value="Completed">🏆 Completed</option>
+                            <option value="Abandoned">⏹️ Abandoned</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label for="rating" class="form-apple-label">Rating (1 to 5 Stars)</label>
+                        <select id="rating" asp-for="Rating" class="form-apple-select">
+                            <option value="5">⭐⭐⭐⭐⭐ (5/5 Masterpiece)</option>
+                            <option value="4">⭐⭐⭐⭐ (4/5 Great)</option>
+                            <option value="3">⭐⭐⭐ (3/5 Good)</option>
+                            <option value="2">⭐⭐ (2/5 Mediocre)</option>
+                            <option value="1">⭐ (1/5 Poor)</option>
+                        </select>
+                    </div>
+                </div>

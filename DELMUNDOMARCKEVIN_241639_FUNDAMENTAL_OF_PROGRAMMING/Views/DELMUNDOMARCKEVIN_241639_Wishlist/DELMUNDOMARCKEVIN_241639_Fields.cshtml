@@ -1,0 +1,33 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_WishlistInput
+                <div class="mb-3">
+                    <label for="name" class="form-apple-label">Item Name <span class="text-danger">*</span></label>
+                    <input type="text" id="name" asp-for="Name" class="form-apple-input" placeholder="e.g. Ergonomic Office Desk" required />
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label for="category" class="form-apple-label">Category</label>
+                        <input type="text" id="category" asp-for="Category" class="form-apple-input" placeholder="e.g. Electronics, Books" />
+                    </div>
+                    <div class="col-6">
+                        <label for="price" class="form-apple-label">Estimated Price (₱) <span class="text-danger">*</span></label>
+                        <input type="number" id="price" asp-for="Price" min="0" step="50" class="form-apple-input" required />
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <label for="priority" class="form-apple-label">Priority Level</label>
+                        <select id="priority" asp-for="Priority" class="form-apple-select">
+                            <option value="High">🔥 High Priority</option>
+                            <option value="Medium">⭐ Medium Priority</option>
+                            <option value="Low">🌱 Low Priority</option>
+                        </select>
+                    </div>
+                    <div class="col-6 d-flex align-items-end">
+                        <div class="form-check form-switch p-2 ps-5 rounded-3 bg-light border w-100">
+                            <input class="form-check-input ms-n5" type="checkbox" id="purchased" asp-for="Purchased" />
+                            <label class="form-check-label small fw-semibold" for="purchased">Already Purchased?</label>
+                        </div>
+                    </div>
+                </div>

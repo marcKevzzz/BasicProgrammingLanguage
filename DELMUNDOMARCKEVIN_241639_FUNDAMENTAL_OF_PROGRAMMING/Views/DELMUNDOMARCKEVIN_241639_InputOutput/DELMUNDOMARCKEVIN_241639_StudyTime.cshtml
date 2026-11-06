@@ -1,6 +1,7 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_StudyTimeModel
 @{
     ViewData["Title"] = "Study Time Calculator";
-    var entries = ViewBag.Entries as List<Dictionary<string, object>>;
+    var entries = Model.Entries as List<DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_StudyEntry>;
 }
 
 <!-- Header -->
@@ -33,10 +34,10 @@
                         {
                             <div class="row g-2 align-items-center subject-row">
                                 <div class="col-7">
-                                    <input type="text" name="subjectNames" aria-label="Subject name" class="form-apple-input" value="@entries[i]["subject"]" placeholder="e.g. Data Structures" required />
+                                    <input type="text" name="subjectNames" aria-label="Subject name" class="form-apple-input" value="@entries[i].Subject" placeholder="e.g. Data Structures" required />
                                 </div>
                                 <div class="col-4">
-                                    <input type="number" name="studyHours" aria-label="Study hours" class="form-apple-input" value="@entries[i]["hours"]" step="any" min="0" placeholder="Hours" required />
+                                    <input type="number" name="studyHours" aria-label="Study hours" class="form-apple-input" value="@entries[i].Hours" step="any" min="0" placeholder="Hours" required />
                                 </div>
                                 <div class="col-1 text-center">
                                     <button type="button" class="btn btn-sm text-danger btn-remove-row" title="Remove" aria-label="Remove"><i class="bi bi-trash"></i></button>
@@ -76,23 +77,23 @@
                     <h2 class="h5 fw-bold mb-0">Study Time Summary</h2>
                 </div>
 
-                @if (ViewBag.Error != null)
+                @if (Model.Error != null)
                 {
                     <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
                         <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                        @ViewBag.Error
+                        @Model.Error
                     </div>
                 }
-                else if (ViewBag.Success == true)
+                else if (Model.Success == true)
                 {
                     <dl class="study-metrics">
                         <div>
                             <dt>Total study time</dt>
-                            <dd>@string.Format("{0:F1}", ViewBag.TotalHours)<span>hrs</span></dd>
+                            <dd>@string.Format("{0:F1}", Model.TotalHours)<span>@((double)Model.TotalHours == 1 ? "hr" : "hrs")</span></dd>
                         </div>
                         <div>
                             <dt>Average per subject</dt>
-                            <dd>@string.Format("{0:F2}", ViewBag.AverageHours)<span>hrs</span></dd>
+                            <dd>@string.Format("{0:F2}", Model.AverageHours)<span>@((double)Model.AverageHours == 1 ? "hr" : "hrs")</span></dd>
                         </div>
                     </dl>
 
@@ -101,12 +102,12 @@
                         <ul class="study-breakdown" aria-label="Study time by subject">
                             @foreach (var item in entries)
                             {
-                                double hours = Convert.ToDouble(item["hours"]);
-                                double percent = ViewBag.TotalHours > 0 ? hours / (double)ViewBag.TotalHours * 100 : 0;
+                                double hours = Convert.ToDouble(item.Hours);
+                                double percent = Model.TotalHours > 0 ? hours / (double)Model.TotalHours * 100 : 0;
                                 <li>
-                                    <span class="study-subject">@item["subject"]</span>
+                                    <span class="study-subject">@item.Subject</span>
                                     <span class="study-allocation">
-                                        <strong>@hours.ToString("0.##") hrs</strong>
+                                        <strong>@hours.ToString("0.##") @(hours == 1 ? "hr" : "hrs")</strong>
                                         <span>@percent.ToString("F0")% of total</span>
                                     </span>
                                 </li>
@@ -179,7 +180,7 @@ public IActionResult StudyTime(string[]? subjectNames, double[]? studyHours)
         {
             if (subjectNames == null || studyHours == null || subjectNames.Length == 0 || subjectNames.Length != studyHours.Length || !ModelState.IsValid)
             {
-                ViewBag.Error = "Please enter at least one academic subject and its study duration.";
+                Model.Error = "Please enter at least one academic subject and its study duration.";
                 return View();
             }
 
@@ -194,7 +195,7 @@ public IActionResult StudyTime(string[]? subjectNames, double[]? studyHours)
                 if (string.IsNullOrWhiteSpace(name)) continue;
                 if (!double.IsFinite(hours) || hours &lt; 0 || !double.IsFinite(totalHours + hours))
                 {
-                    ViewBag.Error = $"Study hours for '{name}' must be a finite, non-negative number.";
+                    Model.Error = $"Study hours for '{name}' must be a finite, non-negative number.";
                     return View();
                 }
 
@@ -208,16 +209,16 @@ public IActionResult StudyTime(string[]? subjectNames, double[]? studyHours)
 
             if (entries.Count == 0)
             {
-                ViewBag.Error = "Please provide valid subject names.";
+                Model.Error = "Please provide valid subject names.";
                 return View();
             }
 
             double averageHours = totalHours / entries.Count;
 
-            ViewBag.Entries = entries;
-            ViewBag.TotalHours = totalHours;
-            ViewBag.AverageHours = averageHours;
-            ViewBag.Success = true;
+            Model.Entries = entries;
+            Model.TotalHours = totalHours;
+            Model.AverageHours = averageHours;
+            Model.Success = true;
             return View();
         }</code></pre>
         </div>

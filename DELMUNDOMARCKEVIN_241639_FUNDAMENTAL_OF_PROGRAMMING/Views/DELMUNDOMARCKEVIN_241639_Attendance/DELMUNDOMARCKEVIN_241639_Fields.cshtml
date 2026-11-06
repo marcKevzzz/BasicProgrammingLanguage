@@ -1,0 +1,36 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_AttendanceInput
+                <div class="mb-3">
+                    <label for="name" class="form-apple-label">Full Student Name <span class="text-danger">*</span></label>
+                    <input type="text" id="name" asp-for="Name" class="form-apple-input" placeholder="e.g. Angelica Marie Santos" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="studentNumber" class="form-apple-label">Student ID Number <span class="text-danger">*</span></label>
+                    <input type="text" id="studentNumber" asp-for="StudentNumber" class="form-apple-input" placeholder="e.g. 2024-01299" required />
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-7">
+                        <label for="course" class="form-apple-label">Academic Degree Program</label>
+                        <input type="text" id="course" asp-for="Course" class="form-apple-input" />
+                    </div>
+                    <div class="col-5">
+                        <label for="section" class="form-apple-label">Class Section</label>
+                        <input type="text" id="section" asp-for="Section" class="form-apple-input" />
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <label for="date" class="form-apple-label">Attendance Date</label>
+                        <input type="date" id="date" asp-for="Date" class="form-apple-input" />
+                    </div>
+                    <div class="col-6">
+                        <label for="status" class="form-apple-label">Attendance Status</label>
+                        <select id="status" asp-for="Status" class="form-apple-select">
+                            <option value="Present">🟢 Present</option>
+                            <option value="Late">🟡 Late</option>
+                            <option value="Absent">🔴 Absent</option>
+                        </select>
+                    </div>
+                </div>

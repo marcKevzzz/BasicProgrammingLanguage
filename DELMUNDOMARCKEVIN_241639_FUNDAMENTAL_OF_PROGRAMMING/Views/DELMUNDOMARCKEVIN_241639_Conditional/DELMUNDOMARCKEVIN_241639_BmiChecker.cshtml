@@ -1,3 +1,4 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_BmiCheckerModel
 @{
     ViewData["Title"] = "BMI Category Checker";
 }
@@ -22,29 +23,29 @@
 
                 <div class="mb-3">
                     <label for="weight" class="form-apple-label">Weight in Kilograms (kg) <span class="text-danger">*</span></label>
-                    <input type="number" 
-                           id="weight" 
-                           name="weight" 
-                           value="@ViewBag.Weight" 
-                           min="10" 
-                           max="300" 
-                           step="0.1" 
-                           class="form-apple-input" 
-                           placeholder="e.g. 68.5" 
+                    <input type="number"
+                           id="weight"
+                           name="weight"
+                           value="@Model.Weight"
+                           min="10"
+                           max="300"
+                           step="0.1"
+                           class="form-apple-input"
+                           placeholder="e.g. 68.5"
                            required />
                 </div>
 
                 <div class="mb-3">
                     <label for="height" class="form-apple-label">Height in Centimeters (cm) <span class="text-danger">*</span></label>
-                    <input type="number" 
-                           id="height" 
-                           name="height" 
-                           value="@ViewBag.Height" 
-                           min="50" 
-                           max="260" 
-                           step="0.5" 
-                           class="form-apple-input" 
-                           placeholder="e.g. 172" 
+                    <input type="number"
+                           id="height"
+                           name="height"
+                           value="@Model.Height"
+                           min="50"
+                           max="260"
+                           step="0.5"
+                           class="form-apple-input"
+                           placeholder="e.g. 172"
                            required />
                 </div>
 
@@ -68,28 +69,28 @@
                     <h2 class="h5 fw-bold mb-0">Health Classification</h2>
                 </div>
 
-                @if (ViewBag.Error != null)
+                @if (Model.Error != null)
                 {
                     <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
                         <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                        @ViewBag.Error
+                        @Model.Error
                     </div>
                 }
-                else if (ViewBag.Success == true)
+                else if (Model.Success == true)
                 {
                     <div class="output-hero-panel">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="text-secondary small fw-bold text-uppercase">Computed BMI Score</span>
-                            <span class="badge @ViewBag.BadgeClass px-3 py-1 rounded-pill fs-6 fw-semibold">
-                                @ViewBag.Category
+                            <span class="badge @Model.BadgeClass px-3 py-1 rounded-pill fs-6 fw-semibold">
+                                @Model.Category
                             </span>
                         </div>
                         <div class="output-value-large mb-2">
-                            @string.Format("{0:F1}", ViewBag.Bmi) <span class="fs-4 text-secondary fw-normal">kg/m&sup2;</span>
+                            @string.Format("{0:F1}", Model.Bmi) <span class="fs-4 text-secondary fw-normal">kg/m&sup2;</span>
                         </div>
 
                         <p class="text-secondary small mb-3">
-                            @ViewBag.Advice
+                            @Model.Advice
                         </p>
                     </div>
                 }
@@ -178,13 +179,13 @@ public IActionResult BmiChecker(double? weight, double? height)
 {
     if (!weight.HasValue || weight.Value &lt;= 10 || weight.Value &gt; 300)
     {
-        ViewBag.Error = "Please enter a valid weight in kilograms (10 - 300 kg).";
+        Model.Error = "Please enter a valid weight in kilograms (10 - 300 kg).";
         return View();
     }
 
     if (!height.HasValue || height.Value &lt;= 50 || height.Value &gt; 260)
     {
-        ViewBag.Error = "Please enter a valid height in centimeters (50 - 260 cm).";
+        Model.Error = "Please enter a valid height in centimeters (50 - 260 cm).";
         return View();
     }
 
@@ -227,13 +228,13 @@ public IActionResult BmiChecker(double? weight, double? height)
         }
     }
 
-    ViewBag.Weight = w;
-    ViewBag.Height = height.Value;
-    ViewBag.Bmi = bmi;
-    ViewBag.Category = category;
-    ViewBag.BadgeClass = badgeClass;
-    ViewBag.Advice = advice;
-    ViewBag.Success = true;
+    Model.Weight = w;
+    Model.Height = height.Value;
+    Model.Bmi = bmi;
+    Model.Category = category;
+    Model.BadgeClass = badgeClass;
+    Model.Advice = advice;
+    Model.Success = true;
 
     return View();
 }</code></pre>

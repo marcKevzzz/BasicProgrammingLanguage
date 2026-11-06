@@ -1,32 +1,42 @@
-@{ ViewData["Title"] = "Theater Seating Chart"; }
-<div class="mb-4"><h1 class="hero-title">Theater Seating Chart</h1><p class="hero-subtitle">Select seats to calculate your ticket total.</p></div>
-<div class="apple-card mb-5"><div data-theater><div class="theater-screen">SCREEN</div><p class="text-secondary text-center">A–B Front: ₱150 · C–D VIP: ₱300 · E Rear: ₱200</p><div class="seat-grid" data-seat-grid></div><p role="status" class="text-secondary mt-3" data-seat-status></p><p class="output-value-large" data-seat-total aria-label="Total ticket price">₱0</p><p class="text-secondary" data-seat-selection></p><button class="btn-apple-secondary" type="button" data-seat-reset>Clear selection</button></div></div>
-<details class="lesson-details"><summary>How it works</summary><div class="lesson-content"><ol><li><strong>Map the seats:</strong> a 5 × 8 array stores selection states, while a matching price array stores the cost at each row-and-column position.</li><li><strong>Assign row prices:</strong> rows A–B cost ₱150, C–D cost ₱300, and E costs ₱200; C4 maps to indexes [2, 3] because array indexes start at zero.</li><li><strong>Toggle a cell:</strong> selecting a seat switches its Boolean value between true and false.</li><li><strong>Recalculate the result:</strong> nested loops visit every seat, count selected cells, and add their corresponding prices; Clear selection empties the selection, and reloading resets this practice chart.</li></ol></div></details>
-<details class="lesson-details">
-    <summary>C# code</summary>
-    <div class="lesson-content"><p>The interactive simulation runs in JavaScript; this C# equivalent highlights the same two-dimensional array operations.</p>
-        <div class="macos-code-box">
-            <div class="macos-code-header"><div class="code-title">TheaterSeating — core 2D array logic</div><button type="button" class="btn-copy-code" data-code-target="TheaterSeatingArrayCode">Copy code</button></div>
-            <pre class="macos-code-body" id="TheaterSeatingArrayCode"><code><mark class="array-code-highlight">bool[,] selected = new bool[5, 8];</mark>
-<mark class="array-code-highlight">decimal[,] prices = new decimal[5, 8];</mark>
-decimal[] rowPrices = { 150m, 150m, 300m, 300m, 200m };
-for (int row = 0; row &lt; prices.GetLength(0); row++)
-    for (int column = 0; column &lt; prices.GetLength(1); column++)
-        prices[row, column] = rowPrices[row];
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_TheaterSeatingModel
+@{ ViewData["Title"] = "Theater Seating Chart"; bool[,] selected = Model.Selected; decimal[,] prices = Model.Prices; var labels = new List<string>(); for (int r = 0; r < 5; r++) { for (int c = 0; c < 8; c++) { if (selected[r, c]) labels.Add($"{(char)('A' + r)}{c + 1}"); } } }
+<div class="mb-4"><h1 class="hero-title">Theater Seating Chart</h1><p class="hero-subtitle">Select seats by row and column to calculate your total ticket price.</p></div>
+<div class="apple-card mb-5" data-array-program="seats">
+    <div class="theater-screen">SCREEN</div><p class="text-secondary text-center">A–B Front: ₱150 · C–D VIP: ₱300 · E Rear: ₱200</p>
+    <p class="form-text mobile-grid-hint" id="seatScrollHelp">On phones, each theater row continues on the next line; seat labels keep their original row and number.</p>
+    <div class="seat-viewport" tabindex="0" role="group" aria-label="Theater seats" aria-describedby="seatScrollHelp"><div class="seat-grid">
+    @for (int r = 0; r < 5; r++) { for (int c = 0; c < 8; c++) { string label = $"{(char)('A' + r)}{c + 1}";
+        <form method="post" asp-action="TheaterSeating"><input type="hidden" name="command" value="toggle" /><input type="hidden" name="row" value="@r" /><input type="hidden" name="column" value="@c" /><button type="submit" class="seat-button" data-cell="@label" aria-label="Seat @label, ₱@prices[r, c], @(selected[r, c] ? "selected" : "available")" aria-pressed="@selected[r, c].ToString().ToLowerInvariant()">@label</button></form>
+    } }
+    </div></div>
+    <p role="status" aria-live="polite" class="mt-3" data-grid-status>@Model.Message @labels.Count selected · @(40 - labels.Count) available</p>
+    <p class="output-value-large" aria-label="Total ticket price">₱@(((decimal)Model.Total).ToString("N2"))</p><p class="text-secondary">@(labels.Count > 0 ? string.Join(", ", labels) : "No seats selected.")</p>
+    <form method="post" asp-action="TheaterSeating"><button name="command" value="clear" class="btn-apple-secondary">Clear selection</button></form>
+</div>
+<details class="lesson-details"><summary>How it works</summary><div class="lesson-content"><ol><li>A C# <code>bool[5, 8]</code> stores selected seats and a matching <code>decimal[5, 8]</code> stores ticket prices.</li><li>Choosing a seat toggles its value at <code>selected[row, column]</code>; C4 is [2, 3] because indexes start at zero.</li><li>Nested loops visit every selected cell and add <code>prices[row, column]</code> to the total.</li><li>Your session remembers the selection; Clear selection releases all seats.</li></ol></div></details>
+<details class="lesson-details"><summary>C# code</summary><div class="lesson-content"><p>These are the actual C# methods used by this exercise; the controller calls them and remembers your state in a session.</p><div class="macos-code-box"><div class="macos-code-header"><div class="code-title">GridExercises.cs — actual 2D array logic</div><button type="button" class="btn-copy-code" data-code-target="TheaterSeatingCode">Copy code</button></div><pre class="macos-code-body" id="TheaterSeatingCode"><code>    public static bool[,] SelectedSeats(string state)
+    {
+        <mark class="array-code-highlight">bool[,] selected = new bool[5, 8];</mark>
+        for (int row = 0; row &lt; 5; row++)
+            for (int column = 0; column &lt; 8; column++)
+                selected[row, column] = state[row * 8 + column] == '1';
+        return selected;
+    }
 
-// Toggle seat C4: indexes start at zero.
-int chosenRow = 2, chosenColumn = 3;
-selected[chosenRow, chosenColumn] = !selected[chosenRow, chosenColumn];
-decimal total = 0m;
-int count = 0;
-for (int row = 0; row &lt; selected.GetLength(0); row++)
-    for (int column = 0; column &lt; selected.GetLength(1); column++)
-        if (selected[row, column])
-        {
-            <mark class="array-code-highlight">total += prices[row, column];</mark>
-            count++;
-        }
-Console.WriteLine($"{count} selected; total: ₱{total:N2}");</code></pre>
-        </div>
-    </div>
-</details>
+    public static decimal[,] SeatPrices()
+    {
+        <mark class="array-code-highlight">decimal[,] prices = new decimal[5, 8];</mark>
+        for (int row = 0; row &lt; 5; row++)
+            for (int column = 0; column &lt; 8; column++)
+                prices[row, column] = row &lt; 2 ? 150m : row &lt; 4 ? 300m : 200m;
+        return prices;
+    }
+
+    public static decimal SeatTotal(bool[,] selected, decimal[,] prices)
+    {
+        decimal total = 0m;
+        for (int row = 0; row &lt; selected.GetLength(0); row++)
+            for (int column = 0; column &lt; selected.GetLength(1); column++)
+                if (selected[row, column]) total += prices[row, column];
+        return total;
+    }</code></pre></div></div></details>

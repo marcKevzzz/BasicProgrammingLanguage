@@ -1,7 +1,7 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_BookEditModel
 @{
     ViewData["Title"] = "Edit Book";
-    var book = ViewBag.Book as Dictionary<string, object> ?? new();
-    int id = Convert.ToInt32(book.GetValueOrDefault("id", 0));
+    int id = Model.Id;
 }
 
 <div class="mb-4">
@@ -12,37 +12,12 @@
 <div class="row justify-content-center">
     <div class="col-12 col-md-8 col-lg-6">
         <div class="apple-card">
-            @if (ViewBag.Error != null)
-            {
-                <div class="alert alert-danger rounded-4 border-0 mb-4" role="alert">
-                    <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                    @ViewBag.Error
-                </div>
-            }
+            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
 
             <form method="post" asp-action="Edit" asp-route-id="@id">
                 @Html.AntiForgeryToken()
 
-                <div class="mb-3">
-                    <label for="title" class="form-apple-label">Book Title <span class="text-danger">*</span></label>
-                    <input type="text" id="title" name="title" value="@book.GetValueOrDefault("title")" class="form-apple-input" required />
-                </div>
-
-                <div class="mb-3">
-                    <label for="author" class="form-apple-label">Author(s) <span class="text-danger">*</span></label>
-                    <input type="text" id="author" name="author" value="@book.GetValueOrDefault("author")" class="form-apple-input" required />
-                </div>
-
-                <div class="row g-3 mb-4">
-                    <div class="col-7">
-                        <label for="genre" class="form-apple-label">Genre</label>
-                        <input type="text" id="genre" name="genre" value="@book.GetValueOrDefault("genre")" class="form-apple-input" />
-                    </div>
-                    <div class="col-5">
-                        <label for="year" class="form-apple-label">Publication Year <span class="text-danger">*</span></label>
-                        <input type="number" id="year" name="year" value="@book.GetValueOrDefault("year")" min="1400" max="@(DateTime.Now.Year + 1)" class="form-apple-input" required />
-                    </div>
-                </div>
+                <partial name="DELMUNDOMARCKEVIN_241639_BookFields" model="Model.Input" />
 
                 <div class="form-actions d-flex align-items-center gap-2">
                     <button type="submit" class="btn-apple-primary">

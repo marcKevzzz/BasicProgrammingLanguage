@@ -1,142 +1,58 @@
 using Microsoft.AspNetCore.Mvc;
+using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models;
 using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Services;
 
-namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
+namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers;
+
+public class DELMUNDOMARCKEVIN_241639_LibraryController(LibraryStore store) : Controller
 {
-    public class DELMUNDOMARCKEVIN_241639_LibraryController : Controller
+    public IActionResult Index(string? search) => View(new DELMUNDOMARCKEVIN_241639_LibraryIndexModel(store.Search(search), search));
+
+    public IActionResult Create() => View(new DELMUNDOMARCKEVIN_241639_BookInput { Year = DateTime.Now.Year });
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Create(DELMUNDOMARCKEVIN_241639_BookInput input)
     {
-        private readonly InMemoryCrudStore _store;
+        if (!ModelState.IsValid) return View(input);
+        var book = store.Insert(input);
+        TempData["Success"] = $"Book #{book.Id} '{book.Title}' was successfully added to the catalog.";
+        return RedirectToAction(nameof(Index));
+    }
 
-        public DELMUNDOMARCKEVIN_241639_LibraryController(InMemoryCrudStore store)
+    public IActionResult Edit(int id)
+    {
+        var book = store.GetById(id);
+        if (book == null) return MissingBook(id);
+        return View(new DELMUNDOMARCKEVIN_241639_BookEditModel(id, new DELMUNDOMARCKEVIN_241639_BookInput
         {
-            _store = store;
-        }
+            Title = book.Title, Author = book.Author, Genre = book.Genre, Year = book.Year
+        }));
+    }
 
-        // GET: /Library or /DELMUNDOMARCKEVIN_241639_Library/Index?search=clean
-        public IActionResult Index(string? search)
-        {
-            var books = _store.GetAll("library");
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Edit(int id, DELMUNDOMARCKEVIN_241639_BookInput input)
+    {
+        if (store.GetById(id) == null) return MissingBook(id);
+        if (!ModelState.IsValid) return View(new DELMUNDOMARCKEVIN_241639_BookEditModel(id, input));
+        if (!store.Update(id, input)) return MissingBook(id);
+        TempData["Success"] = $"Book #{id} '{input.Title!.Trim()}' was successfully updated.";
+        return RedirectToAction(nameof(Index));
+    }
 
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                string query = search.Trim().ToLowerInvariant();
-                books = books.Where(b =>
-                    (b.ContainsKey("title") && b["title"].ToString()!.ToLowerInvariant().Contains(query)) ||
-                    (b.ContainsKey("author") && b["author"].ToString()!.ToLowerInvariant().Contains(query)) ||
-                    (b.ContainsKey("genre") && b["genre"].ToString()!.ToLowerInvariant().Contains(query))
-                ).ToList();
-                ViewBag.Search = search;
-            }
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Delete(int id)
+    {
+        if (!store.Delete(id)) return MissingBook(id);
+        TempData["Success"] = $"Book record #{id} was successfully deleted.";
+        return RedirectToAction(nameof(Index));
+    }
 
-            ViewBag.Books = books;
-            return View();
-        }
-
-        // GET: /DELMUNDOMARCKEVIN_241639_Library/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: /DELMUNDOMARCKEVIN_241639_Library/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(string? title, string? author, string? genre, int? year)
-        {
-            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Book(title, author, year);
-            if (validationError != null)
-            {
-                ViewBag.Error = validationError;
-                ViewBag.TitleInput = title;
-                ViewBag.AuthorInput = author;
-                ViewBag.GenreInput = genre;
-                ViewBag.YearInput = year;
-                return View();
-            }
-
-            var book = new Dictionary<string, object>
-            {
-                ["title"] = title!.Trim(),
-                ["author"] = author!.Trim(),
-                ["genre"] = string.IsNullOrWhiteSpace(genre) ? "General" : genre.Trim(),
-                ["year"] = year!.Value
-            };
-
-            int newId = _store.Insert("library", book);
-            TempData["Success"] = $"Book #{newId} '{book["title"]}' was successfully added to the catalog.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET: /DELMUNDOMARCKEVIN_241639_Library/Edit/1
-        public IActionResult Edit(int id)
-        {
-            var book = _store.GetById("library", id);
-            if (book == null)
-            {
-                TempData["Error"] = $"Book with ID #{id} was not found.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            ViewBag.Book = book;
-            return View();
-        }
-
-        // POST: /DELMUNDOMARCKEVIN_241639_Library/Edit/1
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, string? title, string? author, string? genre, int? year)
-        {
-            var existing = _store.GetById("library", id);
-            if (existing == null)
-            {
-                TempData["Error"] = $"Book #{id} could not be found to update.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            string? validationError = !ModelState.IsValid ? "Check the entered values and try again." : CrudValidation.Book(title, author, year);
-            if (validationError != null)
-            {
-                ViewBag.Error = validationError;
-                ViewBag.Book = new Dictionary<string, object>
-                {
-                    ["id"] = id,
-                    ["title"] = title ?? "",
-                    ["author"] = author ?? "",
-                    ["genre"] = genre ?? "",
-                    ["year"] = year ?? 2000
-                };
-                return View();
-            }
-
-            var updated = new Dictionary<string, object>
-            {
-                ["title"] = title!.Trim(),
-                ["author"] = author!.Trim(),
-                ["genre"] = string.IsNullOrWhiteSpace(genre) ? "General" : genre.Trim(),
-                ["year"] = year ?? 2000
-            };
-
-            _store.Update("library", id, updated);
-            TempData["Success"] = $"Book #{id} '{updated["title"]}' was successfully updated.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        // POST: /DELMUNDOMARCKEVIN_241639_Library/Delete/1
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Delete(int id)
-        {
-            bool removed = _store.Delete("library", id);
-            if (removed)
-            {
-                TempData["Success"] = $"Book record #{id} was successfully deleted.";
-            }
-            else
-            {
-                TempData["Error"] = $"Could not delete Book #{id}; record not found.";
-            }
-
-            return RedirectToAction(nameof(Index));
-        }
+    private IActionResult MissingBook(int id)
+    {
+        TempData["Error"] = $"Book #{id} was not found.";
+        return RedirectToAction(nameof(Index));
     }
 }

@@ -1,7 +1,8 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_CountdownTimerModel
 @{
     ViewData["Title"] = "Countdown Timer";
-    var sequence = ViewBag.Sequence as List<Dictionary<string, object>>;
-    int duration = ViewBag.Duration ?? 10;
+    var sequence = Model.Sequence as List<DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_CountdownTick>;
+    int duration = Model.Duration;
 }
 
 <!-- Header -->
@@ -27,8 +28,8 @@
                 <div class="py-4 position-relative d-inline-block">
                     <svg width="220" height="220" viewBox="0 0 220 220" class="mx-auto">
                         <circle cx="110" cy="110" r="95" stroke="var(--border-subtle)" stroke-width="12" fill="none" />
-                        <circle id="timerProgressRing" cx="110" cy="110" r="95" stroke="var(--accent-blue)" stroke-width="12" fill="none" 
-                                stroke-dasharray="597" stroke-dashoffset="0" stroke-linecap="round" 
+                        <circle id="timerProgressRing" cx="110" cy="110" r="95" stroke="var(--accent-blue)" stroke-width="12" fill="none"
+                                stroke-dasharray="597" stroke-dashoffset="0" stroke-linecap="round"
                                 style="transition: stroke-dashoffset 0.8s ease, stroke 0.3s ease; transform: rotate(-90deg); transform-origin: 50% 50%;" />
                     </svg>
                     <div class="position-absolute top-50 start-50 translate-middle">
@@ -139,7 +140,7 @@
         current--;
     }
 
-    ViewBag.Sequence = sequence;
+    Model.Sequence = sequence;
 }</code></pre>
         </div>
     </div>

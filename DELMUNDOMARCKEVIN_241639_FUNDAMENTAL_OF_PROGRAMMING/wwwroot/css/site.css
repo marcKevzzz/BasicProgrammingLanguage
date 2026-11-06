@@ -430,10 +430,10 @@ code { color: var(--text-primary); }
 .tic-win-line line { stroke: currentColor; stroke-width: 6; stroke-linecap: round; }
 .maze-controls { display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: end; }
 .maze-keypad { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(2, 44px); gap: 8px; }
-.maze-keypad [data-move="up"] { grid-area: 1 / 2; }
-.maze-keypad [data-move="left"] { grid-area: 2 / 1; }
-.maze-keypad [data-move="down"] { grid-area: 2 / 2; }
-.maze-keypad [data-move="right"] { grid-area: 2 / 3; }
+.maze-keypad [data-direction="up"] { grid-area: 1 / 2; }
+.maze-keypad [data-direction="left"] { grid-area: 2 / 1; }
+.maze-keypad [data-direction="down"] { grid-area: 2 / 2; }
+.maze-keypad [data-direction="right"] { grid-area: 2 / 3; }
 .maze-cell { min-width: 0; font-size: clamp(.5rem, 1.4vw, 1rem); border-radius: 2px; }
 .page-breadcrumb { flex-wrap: wrap; }
 @media (max-width: 480px) { .maze-grid { gap: 1px; } .maze-player { outline-width: 2px; outline-offset: -2px; } }
@@ -483,3 +483,69 @@ code { color: var(--text-primary); }
 .sidebar-github > span { flex: 1; }
 .sidebar-github:hover { color: var(--text-primary); }
 .sidebar-github > .program-arrow { font-size: .75rem; }
+/* Fixed grid coordinates stay legible; only the map and seating chart can scroll. */
+.maze-viewport, .seat-viewport { overflow: auto; max-width: 100%; overscroll-behavior-inline: contain; scrollbar-width: thin; }
+.maze-grid { min-width: 0; }
+.seat-grid { min-width: 408px; }
+.seat-grid form, .tic-grid form { margin: 0; min-width: 0; }
+.seat-grid .seat-button, .tic-grid .tic-cell { width: 100%; height: 100%; }
+.seat-button { min-width: 44px; min-height: 44px; }
+.tic-grid .tic-cell { display: block; }
+.mobile-grid-hint { display: none; }
+[data-array-program][aria-busy="true"] { cursor: progress; }
+@media (max-width: 992px) {
+    .catalog-controls { display: block; min-width: 0; }
+    .catalog-filters { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; padding: .25rem .25rem .75rem; scroll-padding-inline: .25rem; scrollbar-width: thin; }
+    .filter-pill { flex: 0 0 auto; white-space: nowrap; min-height: 44px; }
+    .catalog-controls > [role="status"] { display: block; margin-top: .5rem; }
+}
+@media (max-width: 600px) {
+    .mobile-grid-hint { display: block; }
+    .maze-viewport { overflow: visible; }
+    .lesson-content { overflow-wrap: anywhere; }
+    .apple-card { min-width: 0; }
+    .app-sidebar > nav { flex-shrink: 0; }
+    .btn-copy-code { min-height: 44px; }
+    .seat-grid { gap: 8px; }
+    .maze-cell { font-size: .75rem; }
+}
+
+.tic-grid { width: min(100%, 360px); aspect-ratio: 1; grid-template-rows: repeat(3, minmax(0, 1fr)); flex-shrink: 0; }
+.tic-grid form { min-height: 0; }
+.tic-grid .tic-cell { padding: 0; line-height: 1; }
+[data-array-program] > form:not(.maze-layout-form):not(.maze-controls) { flex: none; align-items: start; }
+.maze-keypad button { width: 44px; height: 44px; padding: 0; }
+
+.maze-control-row { display: flex; align-items: end; justify-content: space-between; gap: 1rem; padding: 0; }
+.maze-control-row > form { flex: 0 0 auto !important; margin: 0; }
+.maze-control-row .maze-actions { flex-direction: row !important; }
+.maze-controls { display: block; }
+.maze-actions button { white-space: nowrap; }
+
+.maze-restart { width: 44px; height: 44px; padding: 0; font-size: 1.15rem; }
+.maze-next-short { display: none; }
+@media (max-width: 600px) {
+    .maze-cell { font-size: clamp(.4rem, 2vw, .7rem); }
+    .maze-control-row { gap: .5rem; }
+    .maze-keypad { gap: 4px; }
+    .maze-actions { gap: 4px !important; }
+    .maze-actions button { padding-inline: .5rem; min-width: 44px; }
+    .maze-next-label { display: none; }
+    .maze-next-short { display: inline; }
+    .seat-grid { min-width: 0; grid-template-columns: repeat(4, minmax(44px, 1fr)); }
+
+}
+@media (max-width: 360px) {
+    .maze-control-row, .maze-keypad { gap: 0; }
+    .maze-actions { gap: 0 !important; }
+    .maze-actions button { width: 44px; padding-inline: 0; }
+}
+@media (max-width: 600px) {
+    .subject-row { display: grid; grid-template-columns: minmax(0, 1fr) 70px 44px; margin-inline: 0; }
+    .subject-row > div { width: auto; padding-inline: 0; min-width: 0; }
+    .subject-row .btn-remove-row { width: 44px; padding-inline: 0; }
+    .pin-reference .d-flex { flex-wrap: wrap; }
+    #pinForm, .pin-reference, .pin-reference > * { min-width: 0; }
+    .pin-keypad { margin-inline: 0; }
+    .pin-attempts > div { flex: 1 1 0; min-width: 0; padding-inline: .25rem !important; }
+}

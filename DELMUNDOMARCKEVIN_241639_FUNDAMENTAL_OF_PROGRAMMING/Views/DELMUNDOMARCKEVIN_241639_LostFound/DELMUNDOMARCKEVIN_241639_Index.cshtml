@@ -1,6 +1,7 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_LostFoundIndexModel
 @{
     ViewData["Title"] = "Lost and Found Tracker";
-    var reports = ViewBag.Reports as List<Dictionary<string, object>> ?? new();
+    var reports = Model.Items;
 }
 
 <!-- Header -->
@@ -21,18 +22,18 @@
     <form method="get" asp-action="Index" class="row g-2 align-items-center">
         <div class="col-12 col-md-6 position-relative">
             <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
-            <input type="text" 
-                   name="search" aria-label="Search records" 
-                   value="@ViewBag.Search" 
-                   class="form-apple-input ps-5" 
+            <input type="text"
+                   name="search" aria-label="Search records"
+                   value="@Model.Search"
+                   class="form-apple-input ps-5"
                    placeholder="Search by item name, description, or location..." />
         </div>
         <div class="col-6 col-md-3">
             <select name="status" class="form-apple-select">
                 <option value="All">All Statuses</option>
-                <option value="Lost" selected="@(ViewBag.StatusFilter == "Lost")">Lost Items</option>
-                <option value="Found" selected="@(ViewBag.StatusFilter == "Found")">Found Items</option>
-                <option value="Claimed" selected="@(ViewBag.StatusFilter == "Claimed")">Claimed Items</option>
+                <option value="Lost" selected="@(Model.Filter == "Lost")">Lost Items</option>
+                <option value="Found" selected="@(Model.Filter == "Found")">Found Items</option>
+                <option value="Claimed" selected="@(Model.Filter == "Claimed")">Claimed Items</option>
             </select>
         </div>
         <div class="col-4 col-md-2">
@@ -51,7 +52,7 @@
 <!-- Reports Table -->
 <div class="apple-card mb-5">
     <div class="d-flex align-items-center justify-content-between mb-3">
-        <h2 class="h5 fw-bold mb-0">Registered Reports (@reports.Count Records)</h2>
+        <h2 class="h5 fw-bold mb-0">Registered Reports (@reports.Count @(reports.Count == 1 ? "Record" : "Records"))</h2>
     </div>
 
     <div class="table-responsive apple-table-container">
@@ -81,17 +82,17 @@
                 {
                     foreach (var r in reports)
                     {
-                        int id = Convert.ToInt32(r["id"]);
-                        string st = r["status"]?.ToString() ?? "Found";
+                        int id = r.Id;
+                        string st = r.Status?.ToString() ?? "Found";
                         var stBadge = st == "Found" ? "bg-success-subtle text-success border border-success" :
                                       st == "Lost" ? "bg-danger-subtle text-danger border border-danger" : "bg-light text-secondary border";
 
                         <tr>
                             <td class="font-monospace text-secondary">#@id</td>
-                            <td class="fw-bold text-primary">@r["name"]</td>
-                            <td class="text-secondary small" style="max-width: 250px;">@r["description"]</td>
-                            <td><i class="bi bi-geo-alt text-danger me-1"></i> @r["location"]</td>
-                            <td class="font-monospace text-secondary small">@r["date"]</td>
+                            <td class="fw-bold text-primary">@r.Name</td>
+                            <td class="text-secondary small" style="max-width: 250px;">@r.Description</td>
+                            <td><i class="bi bi-geo-alt text-danger me-1"></i> @r.Location</td>
+                            <td class="font-monospace text-secondary small">@r.Date</td>
                             <td>
                                 <span class="badge @stBadge rounded-pill px-2 py-1 small fw-semibold">
                                     @st
@@ -102,7 +103,7 @@
                                     <a asp-action="Edit" asp-route-id="@id" class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Edit report" aria-label="Edit report">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form method="post" asp-action="Delete" asp-route-id="@id" class="d-inline" onsubmit="return confirm('Delete report #@id for \'@r["name"]\'?');">
+                                    <form method="post" asp-action="Delete" asp-route-id="@id" class="d-inline" onsubmit="return confirm('Delete this record?');">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Delete report" aria-label="Delete report">
                                             <i class="bi bi-trash"></i>
@@ -158,27 +159,8 @@
             </div>
             <pre class="macos-code-body" id="lostCode"><code>public IActionResult Index(string? search, string? status)
 {
-    var items = _store.GetAll("lostfound");
-
-    if (!string.IsNullOrWhiteSpace(search))
-    {
-        string query = search.Trim().ToLowerInvariant();
-        items = items.Where(x =&gt;
-            (x.ContainsKey("name") &amp;&amp; x["name"].ToString()!.ToLowerInvariant().Contains(query)) ||
-            (x.ContainsKey("description") &amp;&amp; x["description"].ToString()!.ToLowerInvariant().Contains(query)) ||
-            (x.ContainsKey("location") &amp;&amp; x["location"].ToString()!.ToLowerInvariant().Contains(query))
-        ).ToList();
-    }
-
-    if (!string.IsNullOrWhiteSpace(status) &amp;&amp; status != "All")
-    {
-        items = items.Where(x =&gt;
-            x.ContainsKey("status") &amp;&amp; x["status"].ToString()!.Equals(status, StringComparison.OrdinalIgnoreCase)
-        ).ToList();
-    }
-
-    ViewBag.Reports = items;
-    return View();
+    // Filter typed records and pass a DELMUNDOMARCKEVIN_241639_LostFoundIndexModel to the view.
+    // See the controller for the complete implementation.
 }</code></pre>
         </div>
     </div>

@@ -1,0 +1,2 @@
+namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models;
+public sealed record DELMUNDOMARCKEVIN_241639_HomeIndexModel(IReadOnlyList<DELMUNDOMARCKEVIN_241639_ProgramCategory> Categories, IReadOnlyList<DELMUNDOMARCKEVIN_241639_ProgramEntry> Programs);

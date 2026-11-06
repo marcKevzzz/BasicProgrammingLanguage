@@ -1,3 +1,4 @@
+using DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -8,16 +9,18 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
         [HttpGet]
         public IActionResult NumberGuessing()
         {
+            var model = new DELMUNDOMARCKEVIN_241639_NumberGuessingModel();
             EnsureSecretNumber();
-            ViewBag.History = GetGuessHistory();
-            ViewBag.Attempts = HttpContext.Session.GetInt32("GuessAttempts") ?? 0;
-            ViewBag.IsWon = HttpContext.Session.GetInt32("GuessWon") == 1;
-            return View();
+            model.History = GetGuessHistory();
+            model.Attempts = HttpContext.Session.GetInt32("GuessAttempts") ?? 0;
+            model.IsWon = HttpContext.Session.GetInt32("GuessWon") == 1;
+            return View(model);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public IActionResult NumberGuessing(string? guesses, string? action)
         {
+            var model = new DELMUNDOMARCKEVIN_241639_NumberGuessingModel();
             if (action == "restart")
             {
                 HttpContext.Session.Remove("SecretNumber");
@@ -25,25 +28,25 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
                 HttpContext.Session.Remove("GuessHistory");
                 HttpContext.Session.Remove("GuessWon");
                 EnsureSecretNumber();
-                ViewBag.Attempts = 0;
-                ViewBag.Message = "New game started.";
-                return View();
+                model.Attempts = 0;
+                model.Message = "New game started.";
+                return View(model);
             }
-            ViewBag.History = GetGuessHistory();
-            ViewBag.Attempts = HttpContext.Session.GetInt32("GuessAttempts") ?? 0;
+            model.History = GetGuessHistory();
+            model.Attempts = HttpContext.Session.GetInt32("GuessAttempts") ?? 0;
             var tokens = (guesses ?? "").Split(',', StringSplitOptions.TrimEntries);
             var numbers = new int[tokens.Length];
             if (!ModelState.IsValid || string.IsNullOrWhiteSpace(guesses) || guesses.Length > 200 || tokens.Length > 20)
             {
-                ViewBag.Error = "Enter 1–20 guesses from 1 to 100, separated by commas.";
-                return View();
+                model.Error = "Enter 1–20 guesses from 1 to 100, separated by commas.";
+                return View(model);
             }
             for (int i = 0; i < tokens.Length; i++)
             {
                 if (!int.TryParse(tokens[i], out numbers[i]) || numbers[i] < 1 || numbers[i] > 100)
                 {
-                    ViewBag.Error = "Every guess must be a whole number from 1 to 100.";
-                    return View();
+                    model.Error = "Every guess must be a whole number from 1 to 100.";
+                    return View(model);
                 }
             }
             EnsureSecretNumber();
@@ -51,10 +54,10 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
             int attempts = HttpContext.Session.GetInt32("GuessAttempts") ?? 0;
             if (HttpContext.Session.GetInt32("GuessWon") == 1)
             {
-                ViewBag.IsWon = true;
-                ViewBag.Attempts = attempts;
-                ViewBag.Message = "You already found the number. Start a new game to play again.";
-                return View();
+                model.IsWon = true;
+                model.Attempts = attempts;
+                model.Message = "You already found the number. Start a new game to play again.";
+                return View(model);
             }
             var history = GetGuessHistory();
             int index = 0;
@@ -72,11 +75,13 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
             HttpContext.Session.SetString("GuessHistory", JsonSerializer.Serialize(history));
             HttpContext.Session.SetInt32("GuessAttempts", attempts);
             HttpContext.Session.SetInt32("GuessWon", correct ? 1 : 0);
-            ViewBag.Attempts = attempts;
-            ViewBag.IsWon = correct;
-            ViewBag.History = history;
-            ViewBag.Message = correct ? "You found the number!" : "Try again using the hints below.";
-            return View();
+            model.Attempts = attempts;
+            model.IsWon = correct;
+            model.History = history;
+            int latestGuess = numbers[index - 1];
+            model.Message = correct ? $"Correct! The number was {secret}." : latestGuess < secret ? $"{latestGuess} is too low. Try a higher number." : $"{latestGuess} is too high. Try a lower number.";
+            model.MessageType = correct ? "success" : latestGuess < secret ? "higher" : "lower";
+            return View(model);
         }
 
         private List<string> GetGuessHistory() =>
@@ -92,68 +97,65 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
         [HttpGet]
         public IActionResult ExpenseTracker()
         {
+            var model = new DELMUNDOMARCKEVIN_241639_ExpenseTrackerModel();
             var expenses = GetSessionExpenses();
-            CalculateExpenseMetrics(expenses);
-            return View();
+            CalculateExpenseMetrics(expenses, model);
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ExpenseTracker(string? name, double? amount, string? action)
         {
+            var model = new DELMUNDOMARCKEVIN_241639_ExpenseTrackerModel();
             var expenses = GetSessionExpenses();
 
             if (action == "clear")
             {
                 expenses.Clear();
                 SaveSessionExpenses(expenses);
-                ViewBag.Message = "All recorded expenses have been cleared.";
-                CalculateExpenseMetrics(expenses);
-                return View();
+                model.Message = "All recorded expenses have been cleared.";
+                CalculateExpenseMetrics(expenses, model);
+                return View(model);
             }
 
             if (action == "add")
             {
                 if (string.IsNullOrWhiteSpace(name))
                 {
-                    ViewBag.Error = "Please specify an expense description or category.";
-                    CalculateExpenseMetrics(expenses);
-                    return View();
+                    model.Error = "Please specify an expense description or category.";
+                    CalculateExpenseMetrics(expenses, model);
+                    return View(model);
                 }
 
                 if (!amount.HasValue || amount.Value <= 0)
                 {
-                    ViewBag.Error = "Expense amount must be greater than ₱0.00.";
-                    CalculateExpenseMetrics(expenses);
-                    return View();
+                    model.Error = "Expense amount must be greater than ₱0.00.";
+                    CalculateExpenseMetrics(expenses, model);
+                    return View(model);
                 }
 
-                expenses.Add(new Dictionary<string, object>
-                {
-                    ["name"] = name.Trim(),
-                    ["amount"] = amount.Value,
-                    ["date"] = DateTime.Now.ToString("MMM dd, yyyy HH:mm")
-                });
+                expenses.Add(new DELMUNDOMARCKEVIN_241639_ExpenseEntry(name.Trim(), amount.Value, DateTime.Now.ToString("MMM dd, yyyy HH:mm")));
 
                 SaveSessionExpenses(expenses);
-                ViewBag.Message = $"Added '{name}' for ₱{amount.Value:N2}.";
+                model.Message = $"Added '{name}' for ₱{amount.Value:N2}.";
             }
 
-            CalculateExpenseMetrics(expenses);
-            return View();
+            CalculateExpenseMetrics(expenses, model);
+            return View(model);
         }
 
-        private List<Dictionary<string, object>> GetSessionExpenses()
+        private List<DELMUNDOMARCKEVIN_241639_ExpenseEntry> GetSessionExpenses()
         {
             var json = HttpContext.Session.GetString("DailyExpenses");
             if (string.IsNullOrEmpty(json))
             {
                 // Seed 3 starter daily expenses
-                var initial = new List<Dictionary<string, object>>
+                var initial = new List<DELMUNDOMARCKEVIN_241639_ExpenseEntry>
                 {
-                    new() { ["name"] = "Breakfast Combo & Coffee", ["amount"] = 165.00, ["date"] = DateTime.Now.ToString("MMM dd, yyyy 08:30") },
-                    new() { ["name"] = "Train & Jeepney Commute", ["amount"] = 85.00, ["date"] = DateTime.Now.ToString("MMM dd, yyyy 12:15") },
-                    new() { ["name"] = "Notebook & Study Pens", ["amount"] = 210.00, ["date"] = DateTime.Now.ToString("MMM dd, yyyy 15:40") }
+                    new("Breakfast Combo & Coffee", 165.00, DateTime.Now.ToString("MMM dd, yyyy 08:30")),
+                    new("Train & Jeepney Commute", 85.00, DateTime.Now.ToString("MMM dd, yyyy 12:15")),
+                    new("Notebook & Study Pens", 210.00, DateTime.Now.ToString("MMM dd, yyyy 15:40"))
                 };
                 SaveSessionExpenses(initial);
                 return initial;
@@ -161,31 +163,20 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
             try
             {
-                var doc = JsonDocument.Parse(json);
-                var list = new List<Dictionary<string, object>>();
-                foreach (var el in doc.RootElement.EnumerateArray())
-                {
-                    list.Add(new Dictionary<string, object>
-                    {
-                        ["name"] = el.GetProperty("name").GetString() ?? "",
-                        ["amount"] = el.GetProperty("amount").GetDouble(),
-                        ["date"] = el.GetProperty("date").GetString() ?? ""
-                    });
-                }
-                return list;
+                return JsonSerializer.Deserialize<List<DELMUNDOMARCKEVIN_241639_ExpenseEntry>>(json) ?? new();
             }
-            catch
+            catch (JsonException)
             {
-                return new List<Dictionary<string, object>>();
+                return new List<DELMUNDOMARCKEVIN_241639_ExpenseEntry>();
             }
         }
 
-        private void SaveSessionExpenses(List<Dictionary<string, object>> expenses)
+        private void SaveSessionExpenses(List<DELMUNDOMARCKEVIN_241639_ExpenseEntry> expenses)
         {
             HttpContext.Session.SetString("DailyExpenses", JsonSerializer.Serialize(expenses));
         }
 
-        private void CalculateExpenseMetrics(List<Dictionary<string, object>> expenses)
+        private void CalculateExpenseMetrics(List<DELMUNDOMARCKEVIN_241639_ExpenseEntry> expenses, DELMUNDOMARCKEVIN_241639_ExpenseTrackerModel model)
         {
             // Explicit Repetition Statement Requirement: Use C# loop to process collection
             double total = 0;
@@ -193,27 +184,28 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
             while (count < expenses.Count)
             {
-                total += Convert.ToDouble(expenses[count]["amount"]);
+                total += expenses[count].Amount;
                 count++;
             }
 
             double average = count > 0 ? total / count : 0.0;
 
-            ViewBag.Expenses = expenses;
-            ViewBag.TotalExpenses = total;
-            ViewBag.AverageExpense = average;
-            ViewBag.ExpenseCount = count;
+            model.Expenses = expenses;
+            model.TotalExpenses = total;
+            model.AverageExpense = average;
+            model.ExpenseCount = count;
         }
 
         [HttpGet]
-        public IActionResult SavingsChallenge() => View();
+        public IActionResult SavingsChallenge() => View(new DELMUNDOMARCKEVIN_241639_SavingsChallengeModel());
 
         [HttpPost, ValidateAntiForgeryToken]
         public IActionResult SavingsChallenge(int? size, string? pattern)
         {
-            ViewBag.Size = size; ViewBag.Pattern = pattern;
+            var model = new DELMUNDOMARCKEVIN_241639_SavingsChallengeModel();
+            model.Size = size; model.Pattern = pattern;
             if (!ModelState.IsValid || size is null or < 1 or > 20 || pattern is not ("left" or "inverted" or "right" or "pyramid" or "diamond"))
-            { ViewBag.Error = "Choose a pattern and a base from 1 to 20."; return View(); }
+            { model.Error = "Choose a pattern and a base from 1 to 20."; return View(model); }
             var lines = new List<string>();
             for (int row = 1; row <= size; row++)
             {
@@ -223,43 +215,45 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
             }
             if (pattern == "diamond") for (int row = size.Value - 1; row >= 1; row--)
                 lines.Add(new string(' ', size.Value - row) + new string('*', 2 * row - 1));
-            ViewBag.Result = string.Join("\n", lines);
-            return View();
+            model.Result = string.Join("\n", lines);
+            return View(model);
         }
 
         // 4. Countdown Timer
         [HttpGet]
         public IActionResult CountdownTimer()
         {
-            ViewBag.Duration = 10;
-            GenerateCountdownSequence(10);
-            return View();
+            var model = new DELMUNDOMARCKEVIN_241639_CountdownTimerModel();
+            model.Duration = 10;
+            GenerateCountdownSequence(10, model);
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CountdownTimer(int? duration)
         {
+            var model = new DELMUNDOMARCKEVIN_241639_CountdownTimerModel();
             if (!duration.HasValue || duration.Value < 1 || duration.Value > 300)
             {
-                ViewBag.Error = "Duration must be between 1 and 300 seconds.";
-                ViewBag.Duration = 10;
-                GenerateCountdownSequence(10);
-                return View();
+                model.Error = "Duration must be between 1 and 300 seconds.";
+                model.Duration = 10;
+                GenerateCountdownSequence(10, model);
+                return View(model);
             }
 
             int sec = duration.Value;
-            ViewBag.Duration = sec;
-            GenerateCountdownSequence(sec);
-            ViewBag.Success = true;
+            model.Duration = sec;
+            GenerateCountdownSequence(sec, model);
+            model.Success = true;
 
-            return View();
+            return View(model);
         }
 
-        private void GenerateCountdownSequence(int seconds)
+        private void GenerateCountdownSequence(int seconds, DELMUNDOMARCKEVIN_241639_CountdownTimerModel model)
         {
             // Repetition Statement: C# while loop to simulate countdown sequence ticks
-            var sequence = new List<Dictionary<string, object>>();
+            var sequence = new List<DELMUNDOMARCKEVIN_241639_CountdownTick>();
             int current = seconds;
 
             while (current >= 0)
@@ -268,17 +262,12 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
                                    current == 1 ? "1 second remaining — Final tick!" :
                                    $"{current} seconds remaining";
 
-                sequence.Add(new Dictionary<string, object>
-                {
-                    ["second"] = current,
-                    ["percent"] = (int)Math.Round(((double)(seconds - current) / seconds) * 100),
-                    ["milestone"] = milestone
-                });
+                sequence.Add(new DELMUNDOMARCKEVIN_241639_CountdownTick(current, (int)Math.Round(((double)(seconds - current) / seconds) * 100), milestone));
 
                 current--;
             }
 
-            ViewBag.Sequence = sequence;
+            model.Sequence = sequence;
         }
 
         // 5. PIN Verification System
@@ -287,6 +276,7 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
         [HttpGet]
         public IActionResult PinVerification()
         {
+            var model = new DELMUNDOMARCKEVIN_241639_PinVerificationModel();
             var previousPin = HttpContext.Session.GetString("DemoPin");
             string newPin;
             do { newPin = System.Security.Cryptography.RandomNumberGenerator.GetInt32(10000).ToString("D4"); }
@@ -294,40 +284,41 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
             HttpContext.Session.SetString("DemoPin", newPin);
             HttpContext.Session.SetInt32("PinRemaining", 3);
             HttpContext.Session.SetInt32("PinLocked", 0);
-            ViewBag.RemainingAttempts = HttpContext.Session.GetInt32("PinRemaining") ?? 3;
-            ViewBag.IsLocked = HttpContext.Session.GetInt32("PinLocked") == 1;
-            ViewBag.DemoPin = CurrentPin;
-            return View();
+            model.RemainingAttempts = HttpContext.Session.GetInt32("PinRemaining") ?? 3;
+            model.IsLocked = HttpContext.Session.GetInt32("PinLocked") == 1;
+            model.DemoPin = CurrentPin;
+            return View(model);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public IActionResult PinVerification(string? pin, string? action)
         {
+            var model = new DELMUNDOMARCKEVIN_241639_PinVerificationModel();
             EnsurePinSession();
-            ViewBag.DemoPin = CurrentPin;
+            model.DemoPin = CurrentPin;
             if (action == "reset")
             {
                 HttpContext.Session.SetInt32("PinRemaining", 3);
                 HttpContext.Session.SetInt32("PinLocked", 0);
-                ViewBag.RemainingAttempts = 3;
-                ViewBag.IsLocked = false;
-                ViewBag.Message = "Demo reset. You have three attempts.";
-                return View();
+                model.RemainingAttempts = 3;
+                model.IsLocked = false;
+                model.Message = "Demo reset. You have three attempts.";
+                return View(model);
             }
             int remaining = HttpContext.Session.GetInt32("PinRemaining") ?? 3;
-            ViewBag.RemainingAttempts = remaining;
-            ViewBag.IsLocked = HttpContext.Session.GetInt32("PinLocked") == 1;
-            if (ViewBag.IsLocked)
+            model.RemainingAttempts = remaining;
+            model.IsLocked = HttpContext.Session.GetInt32("PinLocked") == 1;
+            if (model.IsLocked)
             {
-                ViewBag.Error = "The demo is locked. Reset it to try again.";
-                return View();
+                model.Error = "The demo is locked. Reset it to try again.";
+                return View(model);
             }
             var attempts = (pin ?? "").Split(',', StringSplitOptions.TrimEntries);
             if (!ModelState.IsValid || string.IsNullOrWhiteSpace(pin) || pin.Length > 30 || attempts.Length > 3 ||
                 attempts.Any(value => value.Length != 4 || !value.All(char.IsAsciiDigit)))
             {
-                ViewBag.Error = "Enter 1–3 four-digit PINs, separated by commas.";
-                return View();
+                model.Error = "Enter 1–3 four-digit PINs, separated by commas.";
+                return View(model);
             }
             var history = new List<string>();
             int index = 0;
@@ -342,13 +333,13 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Controllers
 
             HttpContext.Session.SetInt32("PinRemaining", verified ? 3 : remaining);
             HttpContext.Session.SetInt32("PinLocked", remaining == 0 ? 1 : 0);
-            ViewBag.History = history;
-            ViewBag.RemainingAttempts = verified ? 3 : remaining;
-            ViewBag.IsLocked = remaining == 0;
-            ViewBag.Success = verified;
-            if (verified) ViewBag.Message = "Access granted. PIN verified.";
-            else ViewBag.Error = remaining == 0 ? "Three incorrect attempts. The demo is locked." : $"Incorrect PIN. {remaining} attempts remaining.";
-            return View();
+            model.History = history;
+            model.RemainingAttempts = verified ? 3 : remaining;
+            model.IsLocked = remaining == 0;
+            model.Success = verified;
+            if (verified) model.Message = "Access granted. PIN verified.";
+            else model.Error = remaining == 0 ? "Three incorrect attempts. The demo is locked." : $"Incorrect PIN. {remaining} attempts remaining.";
+            return View(model);
         }
 
         private void EnsurePinSession()

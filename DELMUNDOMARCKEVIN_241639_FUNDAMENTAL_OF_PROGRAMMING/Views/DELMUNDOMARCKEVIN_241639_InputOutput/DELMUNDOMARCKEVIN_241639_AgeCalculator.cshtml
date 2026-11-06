@@ -1,3 +1,4 @@
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_AgeCalculatorModel
 @{
     ViewData["Title"] = "Age in Days Calculator";
 }
@@ -22,15 +23,15 @@
 
                 <div class="mb-3">
                     <label for="age" class="form-apple-label">Age in Years <span class="text-danger">*</span></label>
-                    <input type="number" 
-                           id="age" 
-                           name="age" 
-                           value="@ViewBag.Age" 
-                           min="0" 
-                           max="130" 
+                    <input type="number"
+                           id="age"
+                           name="age"
+                           value="@Model.Age"
+                           min="0"
+                           max="130"
                            step="1"
-                           class="form-apple-input" 
-                           placeholder="e.g. 21" 
+                           class="form-apple-input"
+                           placeholder="e.g. 21"
                            required />
                 </div>
 
@@ -54,22 +55,22 @@
                     <h2 class="h5 fw-bold mb-0">Result</h2>
                 </div>
 
-                @if (ViewBag.Error != null)
+                @if (Model.Error != null)
                 {
                     <div class="alert alert-danger rounded-4 border-0 shadow-sm" role="alert">
                         <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                        @ViewBag.Error
+                        @Model.Error
                     </div>
                 }
-                else if (ViewBag.Success == true)
+                else if (Model.Success == true)
                 {
                     <div class="output-hero-panel">
                         <div class="text-secondary small fw-bold text-uppercase mb-1">Approximate Days Lived</div>
                         <div class="output-value-large">
-                            @string.Format("{0:N0}", ViewBag.Days) <span class="fs-4 text-secondary fw-normal">days</span>
+                            @string.Format("{0:N0}", Model.Days) <span class="fs-4 text-secondary fw-normal">days</span>
                         </div>
                         <p class="text-secondary small mt-3 mb-0">
-                            Based on @ViewBag.Age standard solar years (365 days / year).
+                            Based on @Model.Age @(Model.Age == 1 ? "year" : "years") (estimated at 365 days per year).
                         </p>
                     </div>
                 }
@@ -157,13 +158,13 @@ public IActionResult AgeCalculator(int? age)
 {
     if (!age.HasValue || age.Value &lt; 0 || age.Value &gt; 130)
     {
-        ViewBag.Error = "Please enter a valid age between 0 and 130 years.";
+        Model.Error = "Please enter a valid age between 0 and 130 years.";
         return View();
     }
 
-    ViewBag.Age = age.Value;
-    ViewBag.Days = age.Value * 365;
-    ViewBag.Success = true;
+    Model.Age = age.Value;
+    Model.Days = age.Value * 365;
+    Model.Success = true;
     return View();
 }</code></pre>
         </div>

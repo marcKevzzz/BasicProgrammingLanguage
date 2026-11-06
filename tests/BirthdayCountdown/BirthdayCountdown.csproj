@@ -6,9 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <Compile Include="../../DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING/Controllers/DELMUNDOMARCKEVIN_241639_InputOutputController.cs" Link="DELMUNDOMARCKEVIN_241639_InputOutputController.cs" />
-    <Compile Include="../../DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING/Controllers/DELMUNDOMARCKEVIN_241639_RepetitionController.cs" Link="DELMUNDOMARCKEVIN_241639_RepetitionController.cs" />
+    <ProjectReference Include="../../DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING/DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.csproj" />
     <Using Include="Microsoft.AspNetCore.Http" />
   </ItemGroup>
 </Project>

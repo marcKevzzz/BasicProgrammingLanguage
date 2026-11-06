@@ -5,3 +5,8 @@
 *.csproj.user
 *.suo
 **/__pycache__/
+
+**/publish/
+*.pubxml.user
+
+**/Properties/PublishProfiles/

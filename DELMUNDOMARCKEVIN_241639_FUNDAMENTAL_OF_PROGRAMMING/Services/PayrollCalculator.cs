@@ -15,18 +15,23 @@ public static class PayrollCalculator
     // SSS employee schedule effective January 2025; PhilHealth 5%; HDMF Circular 460.
     public static PayrollBreakdown Calculate(decimal salary)
     {
-        if (salary <= 0 || salary != Money(salary))
-            throw new ArgumentOutOfRangeException(nameof(salary));
-
-        decimal credit = Math.Clamp(decimal.Floor((Math.Min(salary, 35000m) + 250m) / 500m) * 500m, 5000m, 35000m);
-        decimal sss = Money(credit * 0.05m);
-        decimal philHealth = Money(Math.Clamp(salary, 10000m, 100000m) * 0.05m / 2m);
-        decimal pagIbigRate;
-        if (salary <= 1500m) pagIbigRate = 0.01m;
-        else pagIbigRate = 0.02m;
-        decimal pagIbig = Money(Math.Min(salary, 10000m) * pagIbigRate);
-        decimal taxable = Math.Max(0m, salary - sss - philHealth - pagIbig);
-        return new(salary, credit, sss, philHealth, pagIbig, taxable, MonthlyTax(taxable));
+        if (salary > 0)
+        {
+            if (salary == Money(salary))
+            {
+                decimal credit = Math.Clamp(decimal.Floor((Math.Min(salary, 35000m) + 250m) / 500m) * 500m, 5000m, 35000m);
+                decimal sss = Money(credit * 0.05m);
+                decimal philHealth = Money(Math.Clamp(salary, 10000m, 100000m) * 0.05m / 2m);
+                decimal pagIbigRate;
+                if (salary <= 1500m) pagIbigRate = 0.01m;
+                else pagIbigRate = 0.02m;
+                decimal pagIbig = Money(Math.Min(salary, 10000m) * pagIbigRate);
+                decimal taxable = Math.Max(0m, salary - sss - philHealth - pagIbig);
+                return new(salary, credit, sss, philHealth, pagIbig, taxable, MonthlyTax(taxable));
+            }
+            else throw new ArgumentException("Salary must use whole centavos.", nameof(salary));
+        }
+        else throw new ArgumentOutOfRangeException(nameof(salary));
     }
 
     // BIR RR 11-2018 Annex E: monthly table effective January 2023 onwards.

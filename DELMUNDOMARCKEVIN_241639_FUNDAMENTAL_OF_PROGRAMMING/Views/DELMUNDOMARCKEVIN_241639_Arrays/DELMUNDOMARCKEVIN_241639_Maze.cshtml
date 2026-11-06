@@ -1,36 +1,52 @@
-@{ ViewData["Title"] = "Maze Explorer"; }
-<div class="mb-4"><h1 class="hero-title">Maze Explorer</h1><p class="hero-subtitle">Find your way from S to E. Use the arrow keys or movement buttons.</p></div>
-<div class="apple-card mb-5" data-maze><div class="maze-grid" tabindex="0" role="group" aria-label="Maze. Use arrow keys to move." data-maze-grid></div><p role="status" class="mt-3" data-maze-status></p><div class="maze-controls"><div class="maze-keypad" role="group" aria-label="Movement controls"><button type="button" class="btn-apple-secondary" data-move="up" aria-label="Move up">↑</button><button type="button" class="btn-apple-secondary" data-move="left" aria-label="Move left">←</button><button type="button" class="btn-apple-secondary" data-move="down" aria-label="Move down">↓</button><button type="button" class="btn-apple-secondary" data-move="right" aria-label="Move right">→</button></div><div class="d-flex flex-wrap gap-2"><button type="button" class="btn-apple-secondary" data-maze-reset>Restart</button><button type="button" class="btn-apple-secondary" data-maze-new>New maze</button></div></div><p class="form-text mt-3">S = start · E = exit · solid cells = walls · outlined circle = you</p></div>
-<details class="lesson-details"><summary>How it works</summary><div class="lesson-content"><ol><li><strong>Store the map:</strong> a 15 × 25 grid uses row and column indexes, with an entrance opening on the left edge and an exit opening on the right edge; 1 means wall, 0 means path, S marks the start, and E marks the exit.</li><li><strong>Generate a solvable maze:</strong> randomized depth-first search carves passages between unvisited cells, backtracking at dead ends until every passage cell is connected.</li><li><strong>Check each move:</strong> arrow keys or buttons change one coordinate, then bounds and wall checks decide whether the player can enter the next cell; only valid moves increase the counter.</li><li><strong>Reach the exit:</strong> entering E ends movement and reports your move count; Restart replays the same layout, while New maze or reloading generates another layout.</li></ol></div></details>
-<details class="lesson-details">
-    <summary>C# code</summary>
-    <div class="lesson-content"><p>The interactive simulation runs in JavaScript; this C# equivalent highlights the same two-dimensional array operations.</p>
-        <div class="macos-code-box">
-            <div class="macos-code-header"><div class="code-title">Maze — core 2D array logic</div><button type="button" class="btn-copy-code" data-code-target="MazeArrayCode">Copy code</button></div>
-            <pre class="macos-code-body" id="MazeArrayCode"><code>// C# equivalent of the interactive maze's row-and-column movement.
-bool TryMove(char[,] map, ref int row, ref int column,
-    int rowChange, int columnChange)
-{
-    int nextRow = row + rowChange;
-    int nextColumn = column + columnChange;
-    if (nextRow &lt; 0 || nextRow &gt;= map.GetLength(0) ||
-        nextColumn &lt; 0 || nextColumn &gt;= map.GetLength(1)) return false;
-    <mark class="array-code-highlight">if (map[nextRow, nextColumn] == '1') return false;</mark>
-    row = nextRow;
-    column = nextColumn;
-    return true;
-}
-
-<mark class="array-code-highlight">char[,] maze = {</mark>
-    { '1', '1', '1', '1', '1' },
-    { 'S', '0', '0', '0', '1' },
-    { '1', '1', '1', '0', '1' },
-    { '1', '0', '0', '0', 'E' },
-    { '1', '1', '1', '1', '1' }
-};
-int row = 1, column = 0;
-TryMove(maze, ref row, ref column, 0, 1); // Move right.
-bool reachedExit = maze[row, column] == 'E';</code></pre>
+@model DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Models.DELMUNDOMARCKEVIN_241639_MazeModel
+@{ ViewData["Title"] = "Maze Explorer"; char[,] map = Model.Map; int playerRow = Model.Row; int playerColumn = Model.Column; int moves = Model.Moves; bool won = map[playerRow, playerColumn] == 'E'; }
+<div class="mb-4"><h1 class="hero-title">Maze Explorer</h1><p class="hero-subtitle">Choose a maze and guide the player from the entrance S to the exit E using the WASD, arrow keys, or movement buttons.</p></div>
+<div class="apple-card mb-5" data-array-program="maze">
+    <form method="post" asp-action="Maze" class="maze-layout-form d-flex flex-wrap gap-2 align-items-end mb-4">
+        <div><label for="mazeLayout" class="form-apple-label">Maze layout</label><select id="mazeLayout" name="layout" class="form-apple-select">@for (int i = 0; i < 5; i++) { <option value="@i" selected="@(Model.Layout == i)">Maze @(i + 1)</option> }</select></div>
+        <button type="submit" name="command" value="layout" class="btn-apple-secondary">Load maze</button>
+    </form>
+    <p class="visually-hidden" id="mazeScrollHelp">The entire maze fits the screen. Use WASD, arrow keys, or the movement buttons.</p>
+    <div class="maze-viewport" tabindex="0" role="group" aria-label="Maze. Use WASD or arrow keys to move." aria-describedby="mazeScrollHelp">
+        <div class="maze-grid" style="--maze-columns:25">
+        @for (int r = 0; r < map.GetLength(0); r++) { for (int c = 0; c < map.GetLength(1); c++) {
+            bool player = r == playerRow && c == playerColumn; char value = map[r, c];
+            <span class="maze-cell @(value == '1' ? "maze-wall" : "") @(player ? "maze-player" : "")" aria-label="@(player ? "Player" : value == '1' ? "Wall" : value == 'S' ? "Entrance" : value == 'E' ? "Exit" : "Path")">@(value == 'S' || value == 'E' ? value.ToString() : "")</span>
+        } }
         </div>
     </div>
-</details>
+    <p role="status" aria-live="polite" class="mt-3" data-grid-status>@(Model.Message ?? (won ? $"Exit reached in {moves} {(moves == 1 ? "move" : "moves")}." : $"{moves} {(moves == 1 ? "move" : "moves")}. Find the exit."))</p>
+    <div class="maze-control-row">
+    <form method="post" asp-action="Maze" class="maze-controls" data-maze-controls>
+        <input type="hidden" name="command" value="move" />
+        <div class="maze-keypad" role="group" aria-label="Movement controls">@foreach (var key in new[] { ("up", "↑"), ("left", "←"), ("down", "↓"), ("right", "→") }) { <button type="submit" name="direction" value="@key.Item1" data-direction="@key.Item1" class="btn-apple-secondary" aria-label="Move @key.Item1" disabled="@won">@key.Item2</button> }</div>
+    </form>
+    <form method="post" asp-action="Maze" class="maze-actions d-flex gap-2"><button name="command" value="restart" class="btn-apple-secondary maze-restart" aria-label="Restart maze" title="Restart maze"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button><button name="command" value="new" class="btn-apple-secondary" aria-label="Next maze"><span class="maze-next-label">Next maze</span><span class="maze-next-short" aria-hidden="true">Next</span></button></form>
+    </div>
+    <p class="form-text mt-3 mb-0">WASD or arrow keys to move · S = entrance · E = exit · solid cells = walls · outlined circle = you</p>
+</div>
+<details class="lesson-details"><summary>How it works</summary><div class="lesson-content"><ol><li>A C# <code>char[15, 25]</code> stores one of five fixed layouts; each cell is a wall, path, entrance, or exit.</li><li>Your direction changes one row or column; bounds checks and the wall check decide whether that move is allowed.</li><li>Each allowed move updates the player position in your session; reaching E finishes the maze.</li><li>Restart resets your position; Load maze and Next maze choose another layout.</li></ol></div></details>
+<details class="lesson-details"><summary>C# code</summary><div class="lesson-content"><p>These are the actual C# methods used by this exercise; the controller calls them and remembers your state in a session.</p><div class="macos-code-box"><div class="macos-code-header"><div class="code-title">GridExercises.cs — actual 2D array logic</div><button type="button" class="btn-copy-code" data-code-target="MazeCode">Copy code</button></div><pre class="macos-code-body" id="MazeCode"><code>// Maps is a list of five predefined layouts made of wall/path characters.
+    public static char[,] MazeMap(int layout)
+    {
+        if (layout is &lt; 0 or &gt;= 5) throw new ArgumentOutOfRangeException(nameof(layout));
+        <mark class="array-code-highlight">char[,] map = new char[15, 25];</mark>
+        for (int row = 0; row &lt; map.GetLength(0); row++)
+            for (int column = 0; column &lt; map.GetLength(1); column++)
+                map[row, column] = Maps[layout][row][column];
+        return map;
+    }
+
+    public static bool TryMove(char[,] map, ref int row, ref int column, string direction)
+    {
+        int nextRow = row, nextColumn = column;
+        if (direction == "up") nextRow--;
+        else if (direction == "down") nextRow++;
+        else if (direction == "left") nextColumn--;
+        else if (direction == "right") nextColumn++;
+        else return false;
+        if (nextRow &lt; 0 || nextRow &gt;= map.GetLength(0) || nextColumn &lt; 0 || nextColumn &gt;= map.GetLength(1)) return false;
+        if (map[nextRow, nextColumn] == '1') return false;
+        row = nextRow; column = nextColumn;
+        return true;
+    }</code></pre></div></div></details>

@@ -3,7 +3,7 @@ namespace DELMUNDOMARCKEVIN_241639_FUNDAMENTAL_OF_PROGRAMMING.Services;
 
 public static class CrudValidation
 {
-    public static string? Book(string? title, string? author, int? year)
+    public static string? DELMUNDOMARCKEVIN_241639_Book(string? title, string? author, int? year)
     {
         if (string.IsNullOrWhiteSpace(title)) return "Book title is required.";
         if (string.IsNullOrWhiteSpace(author)) return "Author name is required.";
@@ -18,7 +18,7 @@ public static class CrudValidation
         if (!string.IsNullOrWhiteSpace(priority) && priority.Trim() is not ("High" or "Medium" or "Low")) return "Choose a valid priority.";
         return null;
     }
-    public static string? Game(string? title, int? rating, string? status, string? platform)
+    public static string? DELMUNDOMARCKEVIN_241639_Game(string? title, int? rating, string? status, string? platform)
     {
         if (string.IsNullOrWhiteSpace(title)) return "Game title is required.";
         if (rating is null or < 1 or > 5) return "Rating must be between 1 and 5 stars.";
